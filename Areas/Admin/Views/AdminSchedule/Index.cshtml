@@ -1,0 +1,216 @@
+﻿@model IEnumerable<DACSWEBSK.Models.ScheduleItem>
+@{
+    var eventItem = ViewBag.Event as DACSWEBSK.Models.Event;
+    ViewData["Title"] = "Quản lý lịch trình";
+}
+
+<style>
+    .schedule-container {
+        min-height: calc(100vh - 200px);
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        padding: 3rem 0;
+    }
+
+    .content-card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border-radius: 25px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+        padding: 2.5rem;
+        animation: slideInUp 0.5s ease-out;
+    }
+
+    .page-title {
+        color: #667eea;
+        font-weight: 700;
+        position: relative;
+        padding-bottom: 1rem;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .page-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 150px;
+        height: 4px;
+        background: linear-gradient(to right, #667eea, #764ba2);
+        border-radius: 2px;
+    }
+
+    .event-title {
+        color: #4a5568;
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: rgba(102, 126, 234, 0.1);
+        border-radius: 15px;
+        text-align: center;
+    }
+
+    .btn-add {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        margin-bottom: 2rem;
+    }
+
+    .btn-add:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(72, 187, 120, 0.4);
+        color: white;
+    }
+
+    .schedule-table {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .schedule-table thead {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .schedule-table th {
+        padding: 1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.875rem;
+        letter-spacing: 0.5px;
+        border: none;
+    }
+
+    .schedule-table td {
+        padding: 1rem;
+        vertical-align: middle;
+        border-color: rgba(0, 0, 0, 0.05);
+    }
+
+    .schedule-table tbody tr {
+        transition: all 0.3s ease;
+    }
+
+    .schedule-table tbody tr:hover {
+        background: rgba(102, 126, 234, 0.05);
+        transform: translateY(-2px);
+    }
+
+    .btn-action {
+        padding: 0.5rem;
+        border-radius: 50%;
+        width: 35px;
+        height: 35px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        margin: 0 0.2rem;
+    }
+
+    .btn-edit {
+        background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%);
+        border: none;
+        color: white;
+    }
+
+    .btn-delete {
+        background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+        border: none;
+        color: white;
+    }
+
+    .btn-action:hover {
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    .empty-message {
+        text-align: center;
+        padding: 2rem;
+        color: #718096;
+        font-style: italic;
+    }
+
+    @@keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="schedule-container">
+    <div class="container">
+        <div class="content-card">
+            <h2 class="page-title">
+                <i class="fas fa-calendar-alt me-2"></i>@ViewData["Title"]
+            </h2>
+
+            <div class="event-title">
+                <i class="fas fa-bookmark me-2"></i>Sự kiện: @eventItem?.Title
+            </div>
+
+            <a asp-action="Create" asp-route-eventId="@eventItem?.Id" class="btn btn-add d-block w-100">
+                <i class="fas fa-plus-circle me-2"></i>Thêm lịch trình mới
+            </a>
+
+            <div class="schedule-table">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-heading me-2"></i>Tiêu đề</th>
+                            <th><i class="fas fa-user-tie me-2"></i>Diễn giả</th>
+                            <th><i class="fas fa-clock me-2"></i>Bắt đầu</th>
+                            <th><i class="fas fa-hourglass-end me-2"></i>Kết thúc</th>
+                            <th class="text-end"><i class="fas fa-cogs me-2"></i>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@item.Title</td>
+                                    <td>@item.Speaker</td>
+                                    <td>@item.StartTime.ToString("g")</td>
+                                    <td>@item.EndTime.ToString("g")</td>
+                                    <td class="text-end">
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-action btn-edit" title="Sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-action btn-delete" title="Xóa">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="empty-message">
+                                    <i class="fas fa-info-circle me-2"></i>Chưa có lịch trình nào được tạo.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

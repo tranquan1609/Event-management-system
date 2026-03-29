@@ -1,0 +1,321 @@
+﻿@model DACSWEBSK.Models.Event
+@{
+    ViewData["Title"] = "Tạo mới sự kiện";
+}
+
+<style>
+    .event-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .event-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    }
+
+    .event-header .container {
+        position: relative;
+        z-index: 1;
+    }
+
+    .event-form-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        padding: 2rem;
+    }
+
+    .form-control, .form-select {
+        border: 1px solid rgba(31, 38, 135, 0.1);
+        padding: 0.75rem 1.25rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+
+    .form-label {
+        color: #2d3748;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .form-label i {
+        color: #667eea;
+        margin-right: 0.5rem;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+
+    .btn-back {
+        background: linear-gradient(135deg, #f6f9fc 0%, #f1f4f9 100%);
+        color: #2d3748;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-back:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        color: #2d3748;
+    }
+
+    .image-preview-container {
+        background: #f8fafc;
+        border: 2px dashed rgba(102, 126, 234, 0.3);
+        border-radius: 15px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .image-preview-container:hover {
+        border-color: #667eea;
+    }
+
+    .preview-image {
+        max-width: 100%;
+        height: auto;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .validation-summary {
+        background: rgba(255, 0, 0, 0.05);
+        border-radius: 15px;
+        padding: 1rem;
+        margin-bottom: 2rem;
+    }
+</style>
+
+<div class="event-header">
+    <div class="container">
+        <h1 class="display-6 mb-0">
+            <i class="fas fa-plus-circle me-2"></i>
+            Tạo sự kiện mới
+        </h1>
+    </div>
+</div>
+
+<div class="container">
+    <div class="event-form-container">
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            
+            @if (!ViewContext.ModelState.IsValid)
+            {
+                <div class="validation-summary">
+                    <div asp-validation-summary="All" class="text-danger mb-0"></div>
+                </div>
+            }
+
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="mb-4">
+                        <label asp-for="Title" class="form-label">
+                            <i class="fas fa-heading"></i>Tiêu đề sự kiện
+                        </label>
+                        <input asp-for="Title" class="form-control" placeholder="Nhập tiêu đề sự kiện..." />
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Description" class="form-label">
+                            <i class="fas fa-align-left"></i>Mô tả
+                        </label>
+                        <textarea asp-for="Description" class="form-control" rows="4" placeholder="Nhập mô tả sự kiện..."></textarea>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="StartTime" class="form-label">
+                                <i class="fas fa-hourglass-start"></i>Thời gian bắt đầu
+                            </label>
+                            <input asp-for="StartTime" type="datetime-local" class="form-control" id="StartTime" min="" />
+                            <span asp-validation-for="StartTime" class="text-danger small"></span>
+                            <small class="text-muted">Không thể chọn thời gian trong quá khứ</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="EndTime" class="form-label">
+                                <i class="fas fa-hourglass-end"></i>Thời gian kết thúc
+                            </label>
+                            <input asp-for="EndTime" type="datetime-local" class="form-control" id="EndTime" min="" />
+                            <span asp-validation-for="EndTime" class="text-danger small"></span>
+                            <small class="text-muted">Phải sau thời gian bắt đầu</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="mb-4">
+                        <label asp-for="LocationId" class="form-label">
+                            <i class="fas fa-map-marker-alt"></i>Địa điểm
+                            <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="LocationId" class="form-select" asp-items="ViewBag.Locations" required>
+                            <option value="">-- Chọn địa điểm --</option>
+                        </select>
+                        <span asp-validation-for="LocationId" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="fas fa-image"></i>Hình ảnh sự kiện
+                        </label>
+                        <div class="image-preview-container">
+                            <input type="file" name="imageFile" class="form-control mb-3" accept="image/*" onchange="previewImage(event)" />
+                            <div id="imagePreview" style="display: none;">
+                                <img id="preview" src="#" alt="Preview" class="preview-image" />
+                            </div>
+                        </div>
+                        <span asp-validation-for="ImageUrl" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Status" class="form-label">
+                            <i class="fas fa-info-circle"></i>Trạng thái
+                        </label>
+                        <input type="hidden" asp-for="Status" value="Upcoming" />
+                        <input type="text" class="form-control" value="Sắp diễn ra" readonly style="background-color: #f8f9fa; cursor: not-allowed;" />
+                        <small class="text-muted">Trạng thái sẽ tự động cập nhật dựa trên thời gian sự kiện</small>
+                        <span asp-validation-for="Status" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-center gap-3 mt-5">
+                <a asp-action="Index" class="btn-back">
+                    <i class="fas fa-arrow-left"></i>
+                    Quay lại
+                </a>
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-save"></i>
+                    Lưu sự kiện
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function previewImage(event) {
+            var reader = new FileReader();
+            reader.onload = function() {
+                var preview = document.getElementById('preview');
+                preview.src = reader.result;
+                document.getElementById('imagePreview').style.display = 'block';
+            }
+            reader.readAsDataURL(event.target.files[0]);
+        }
+
+        // Thiết lập min date cho datetime-local inputs
+        document.addEventListener('DOMContentLoaded', function() {
+            // Lấy thời gian hiện tại và format thành datetime-local format (YYYY-MM-DDTHH:mm)
+            var now = new Date();
+            // Trừ đi 1 phút để đảm bảo có thể chọn thời gian hiện tại
+            now.setMinutes(now.getMinutes() - 1);
+            var minDateTime = now.toISOString().slice(0, 16);
+            
+            var startTimeInput = document.getElementById('StartTime');
+            var endTimeInput = document.getElementById('EndTime');
+            
+            // Set min cho cả hai input
+            if (startTimeInput) {
+                startTimeInput.setAttribute('min', minDateTime);
+            }
+            if (endTimeInput) {
+                endTimeInput.setAttribute('min', minDateTime);
+            }
+
+            // Khi StartTime thay đổi, cập nhật min của EndTime
+            if (startTimeInput && endTimeInput) {
+                startTimeInput.addEventListener('change', function() {
+                    var startTime = new Date(this.value);
+                    if (startTime && !isNaN(startTime.getTime())) {
+                        // EndTime phải sau StartTime ít nhất 1 phút
+                        var minEndTime = new Date(startTime);
+                        minEndTime.setMinutes(minEndTime.getMinutes() + 1);
+                        endTimeInput.setAttribute('min', minEndTime.toISOString().slice(0, 16));
+                        
+                        // Nếu EndTime hiện tại nhỏ hơn StartTime, reset EndTime
+                        var currentEndTime = new Date(endTimeInput.value);
+                        if (endTimeInput.value && currentEndTime <= startTime) {
+                            endTimeInput.value = minEndTime.toISOString().slice(0, 16);
+                        }
+                    }
+                });
+
+                // Validate khi submit form
+                document.querySelector('form').addEventListener('submit', function(e) {
+                    var startTime = new Date(startTimeInput.value);
+                    var endTime = new Date(endTimeInput.value);
+                    var now = new Date();
+
+                    // Kiểm tra StartTime không được trong quá khứ
+                    if (startTime < now) {
+                        e.preventDefault();
+                        alert('Thời gian bắt đầu không được trong quá khứ!');
+                        startTimeInput.focus();
+                        return false;
+                    }
+
+                    // Kiểm tra EndTime phải sau StartTime
+                    if (endTime <= startTime) {
+                        e.preventDefault();
+                        alert('Thời gian kết thúc phải sau thời gian bắt đầu!');
+                        endTimeInput.focus();
+                        return false;
+                    }
+
+                    // Kiểm tra EndTime không được trong quá khứ
+                    if (endTime < now) {
+                        e.preventDefault();
+                        alert('Thời gian kết thúc không được trong quá khứ!');
+                        endTimeInput.focus();
+                        return false;
+                    }
+                });
+            }
+        });
+    </script>
+}

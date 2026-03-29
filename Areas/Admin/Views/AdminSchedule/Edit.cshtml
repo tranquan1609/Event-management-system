@@ -1,0 +1,48 @@
+﻿@model DACSWEBSK.Models.ScheduleItem
+@{
+    ViewData["Title"] = "Sửa lịch trình";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-lg p-4 rounded-4" style="background: linear-gradient(to right, #e0f7fa, #ffffff);">
+        <h2 class="text-center mb-4" style="color: #0077b6;">✏️ @ViewData["Title"]</h2>
+
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="EventId" />
+
+            <div class="mb-3">
+                <label asp-for="Title" class="form-label">📝 Tiêu đề</label>
+                <input asp-for="Title" class="form-control" required />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Speaker" class="form-label">🎤 Diễn giả</label>
+                <input asp-for="Speaker" class="form-control" />
+                <span asp-validation-for="Speaker" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="StartTime" class="form-label">⏰ Bắt đầu</label>
+                <input asp-for="StartTime" type="datetime-local" class="form-control" required />
+                <span asp-validation-for="StartTime" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="EndTime" class="form-label">⏳ Kết thúc</label>
+                <input asp-for="EndTime" type="datetime-local" class="form-control" required />
+                <span asp-validation-for="EndTime" class="text-danger"></span>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <button type="submit" class="btn btn-success rounded-pill">💾 Lưu</button>
+                <a asp-action="Index" asp-route-eventId="@Model.EventId" class="btn btn-outline-secondary rounded-pill">🔙 Quay lại</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

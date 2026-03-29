@@ -1,0 +1,283 @@
+﻿@page
+@model RegisterModel
+@{
+    ViewData["Title"] = "Đăng ký tài khoản";
+}
+
+<style>
+    .register-container {
+        min-height: calc(100vh - 200px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        padding: 2rem 0;
+    }
+
+    .register-card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(20px);
+        border-radius: 25px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+        padding: 3rem;
+        width: 100%;
+        max-width: 800px;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    .register-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+        .register-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+    .form-floating > .form-control {
+        border-radius: 15px;
+        border: 1px solid rgba(102, 126, 234, 0.2);
+        background: rgba(255, 255, 255, 0.9);
+        transition: all 0.3s ease;
+    }
+
+        .form-floating > .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+        }
+
+    .register-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 50px;
+        padding: 12px 30px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        transition: all 0.4s ease;
+    }
+
+        .register-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+    .register-links {
+        text-align: center;
+        margin-top: 2rem;
+    }
+
+        .register-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+            .register-links a:hover {
+                color: #764ba2;
+                text-decoration: underline;
+            }
+
+    .external-register {
+        margin-top: 2rem;
+        text-align: center;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(102, 126, 234, 0.2);
+    }
+
+        .external-register h3 {
+            font-size: 1.2rem;
+            color: #2d3748;
+            margin-bottom: 1.5rem;
+        }
+
+    .social-btn {
+        background: white;
+        border: 1px solid rgba(102, 126, 234, 0.3);
+        border-radius: 50px;
+        padding: 10px 25px;
+        margin: 0 10px;
+        transition: all 0.3s ease;
+        color: #2d3748;
+    }
+
+        .social-btn:hover {
+            background: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .text-danger {
+        color: #e53e3e;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    .form-select {
+        border-radius: 15px;
+        border: 1px solid rgba(102, 126, 234, 0.2);
+        background: rgba(255, 255, 255, 0.9);
+        transition: all 0.3s ease;
+        height: 58px;
+    }
+
+        .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+        }
+</style>
+
+<div class="register-container">
+    <div class="register-card">
+        <div class="register-header">
+            <h1>
+                <i class="fas fa-user-plus me-2"></i>
+                @ViewData["Title"]
+            </h1>
+            <p class="text-muted">Tạo tài khoản mới để tham gia cùng chúng tôi</p>
+        </div>
+
+        <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-floating mb-3">
+                        <input asp-for="Input.Fullname" class="form-control" autocomplete="name" placeholder="Họ và tên" />
+                        <label asp-for="Input.Fullname">Họ và tên</label>
+                        <span asp-validation-for="Input.Fullname" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <input asp-for="Input.Email" class="form-control" autocomplete="email" placeholder="name@example.com" />
+                        <label asp-for="Input.Email">Email</label>
+                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <input asp-for="Input.PhoneNumber" class="form-control" autocomplete="tel" placeholder="Số điện thoại" />
+                        <label asp-for="Input.PhoneNumber">Số điện thoại</label>
+                        <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <input asp-for="Input.Password" class="form-control" autocomplete="new-password" placeholder="Mật khẩu" />
+                        <label asp-for="Input.Password">Mật khẩu</label>
+                        <span asp-validation-for="Input.Password" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating mb-3">
+                        <input asp-for="Input.DateOfBirth" class="form-control" type="date" placeholder="Ngày sinh" />
+                        <label asp-for="Input.DateOfBirth">Ngày sinh</label>
+                        <span asp-validation-for="Input.DateOfBirth" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <input asp-for="Input.Address" class="form-control" placeholder="Địa chỉ" />
+                        <label asp-for="Input.Address">Địa chỉ</label>
+                        <span asp-validation-for="Input.Address" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <select asp-for="Input.Gender" class="form-select">
+                            <option value="">-- Chọn giới tính --</option>
+                            <option value="Nam">Nam</option>
+                            <option value="Nữ">Nữ</option>
+                            <option value="Khác">Khác</option>
+                        </select>
+                        <label asp-for="Input.Gender">Giới tính</label>
+                        <span asp-validation-for="Input.Gender" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" placeholder="Xác nhận mật khẩu" />
+                        <label asp-for="Input.ConfirmPassword">Xác nhận mật khẩu</label>
+                        <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="Input.AdminKey" class="form-control" placeholder="Admin Key (không bắt buộc)" />
+                <label asp-for="Input.AdminKey">
+                    <i class="fas fa-key me-1"></i>
+                    Admin Key <small class="text-muted">(không bắt buộc)</small>
+                </label>
+                <span asp-validation-for="Input.AdminKey" class="text-danger"></span>
+                <small class="text-muted">Nhập đúng Admin Key để tạo tài khoản Admin</small>
+            </div>
+
+            <button id="registerSubmit" type="submit" class="w-100 btn btn-primary register-btn">
+                <i class="fas fa-user-plus me-2"></i>
+                Đăng ký
+            </button>
+
+            <div class="register-links">
+                <p>
+                    Đã có tài khoản? 
+                    <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl">
+                        <i class="fas fa-sign-in-alt me-1"></i>
+                        Đăng nhập ngay
+                    </a>
+                </p>
+            </div>
+
+            @if ((Model.ExternalLogins?.Count ?? 0) > 0)
+            {
+                <div class="external-register">
+                    <h3>
+                        <i class="fas fa-globe me-2"></i>
+                        Đăng ký bằng tài khoản khác
+                    </h3>
+                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                        @foreach (var provider in Model.ExternalLogins!)
+                        {
+                            <button type="submit" class="btn social-btn" name="provider" value="@provider.Name">
+                                @{
+                                    var icon = provider.Name.ToLower() switch
+                                    {
+                                        "google" => "fab fa-google",
+                                        "facebook" => "fab fa-facebook",
+                                        "twitter" => "fab fa-twitter",
+                                        _ => "fas fa-globe"
+                                    };
+                                }
+                                <i class="@icon me-2"></i>
+                                @provider.DisplayName
+                            </button>
+                        }
+                    </form>
+                </div>
+            }
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

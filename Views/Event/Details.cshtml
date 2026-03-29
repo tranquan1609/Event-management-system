@@ -1,0 +1,562 @@
+﻿@model DACSWEBSK.Models.Event
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+
+@{
+    ViewData["Title"] = "Chi tiết sự kiện";
+    var attendeeCount = Model.Attendees?.Count() ?? 0;
+
+    string GetEventStatus(DateTime startTime, DateTime endTime)
+    {
+        var now = DateTime.Now;
+        if (now < startTime)
+            return "Upcoming";
+        if (now >= startTime && now <= endTime)
+            return "Ongoing";
+        return "Completed";
+    }
+
+    var currentStatus = Model.Status == "Cancelled" ? "Cancelled" : GetEventStatus(Model.StartTime, Model.EndTime);
+
+    string GetVideoId(string url)
+    {
+        if (string.IsNullOrEmpty(url)) return "";
+
+        if (url.Contains("youtube.com/watch?v="))
+            return url.Split("v=")[1].Split('&')[0];
+        else if (url.Contains("youtu.be/"))
+            return url.Split("/").Last().Split('?')[0];
+        
+        return "";
+    }
+
+    bool IsYouTubeUrl(string url)
+    {
+        return !string.IsNullOrEmpty(url) && 
+               (url.Contains("youtube.com/watch?v=") || url.Contains("youtu.be/"));
+    }
+
+    bool IsFacebookUrl(string url)
+    {
+        return !string.IsNullOrEmpty(url) && 
+               (url.Contains("facebook.com") || url.Contains("fb.watch"));
+    }
+}
+
+@functions {
+    public string GetEmbedUrl(string url)
+    {
+        if (string.IsNullOrEmpty(url)) return "";
+
+        if (url.Contains("youtube.com/watch?v=") || url.Contains("youtu.be/"))
+        {
+            var videoId = "";
+            if (url.Contains("youtube.com/watch?v="))
+                videoId = url.Substring(url.IndexOf("v=") + 2).Split('&')[0];
+            else if (url.Contains("youtu.be/"))
+                videoId = url.Substring(url.LastIndexOf("/") + 1).Split('?')[0];
+
+            return $"https://www.youtube.com/embed/{videoId}";
+        }
+
+        if (url.Contains("facebook.com") || url.Contains("fb.watch"))
+        {
+            return $"https://www.facebook.com/plugins/video.php?href={System.Net.WebUtility.UrlEncode(url)}";
+        }
+
+        return url;
+    }
+}
+
+<style>
+    .event-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 3rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .event-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('@Model.ImageUrl') center/cover;
+        opacity: 0.2;
+        filter: blur(8px);
+    }
+
+    .event-header .container {
+        position: relative;
+        z-index: 1;
+    }
+
+    .event-info-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        transition: transform 0.3s ease;
+    }
+
+    .event-info-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .schedule-section {
+        background: linear-gradient(135deg, #f6f9fc 0%, #f1f4f9 100%);
+        padding: 3rem 0;
+        border-radius: 20px;
+        margin: 2rem 0;
+    }
+
+    .schedule-item {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        border-left: 5px solid #667eea;
+        transition: all 0.3s ease;
+    }
+
+    .schedule-item:hover {
+        transform: translateX(10px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .video-section {
+        background: rgba(102, 126, 234, 0.05);
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+    }
+
+    .attendee-section {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .badge {
+        padding: 8px 16px;
+        border-radius: 50px;
+        font-weight: 600;
+    }
+
+    .registration-form {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+    }
+
+    .form-floating > .form-control {
+        border-radius: 10px;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+        border: none;
+        padding: 12px 30px;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-success:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+    }
+</style>
+
+<div class="event-header">
+    <div class="container">
+        <h1 class="display-4 mb-4">@Model.Title</h1>
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <p class="lead mb-4">@Model.Description</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                @switch (currentStatus)
+                {
+                    case "Upcoming":
+                        <span class="badge bg-success">
+                            <i class="fas fa-clock me-1"></i> Sắp diễn ra
+                        </span>
+                        break;
+                    case "Ongoing":
+                        <span class="badge bg-primary">
+                            <i class="fas fa-play me-1"></i> Đang diễn ra
+                        </span>
+                        break;
+                    case "Completed":
+                        <span class="badge bg-secondary">
+                            <i class="fas fa-check me-1"></i> Đã kết thúc
+                        </span>
+                        break;
+                    case "Cancelled":
+                        <span class="badge bg-danger">
+                            <i class="fas fa-times me-1"></i> Đã hủy
+                        </span>
+                        break;
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="event-info-card">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-calendar-alt text-primary"></i> Thời gian</h5>
+                        <p class="mb-0">@Model.StartTime.ToString("g") - @Model.EndTime.ToString("g")</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-map-marker-alt text-danger"></i> Địa điểm</h5>
+                        <p class="mb-0">@Model.Location?.Name</p>
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.Videos?.Any() == true)
+            {
+                <div class="video-section">
+                    <h4 class="mb-4"><i class="fas fa-video"></i> Video / Livestream</h4>
+                    @foreach (var video in Model.Videos)
+                    {
+                        <div class="mb-4">
+                            <h5>@video.Title</h5>
+                            <div class="ratio ratio-16x9 mt-2">
+                                <iframe src="https://www.youtube.com/embed/@GetVideoId(video.Url)" 
+                                        frameborder="0" 
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                        allowfullscreen>
+                                </iframe>
+                            </div>
+                            <a asp-controller="Video" asp-action="Details" asp-route-id="@video.Id" class="btn btn-primary btn-sm mt-2">
+                                <i class="fas fa-external-link-alt me-1"></i> Xem chi tiết video
+                            </a>
+                        </div>
+                    }
+                </div>
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-info-circle me-2"></i> Lưu ý: Nên nhấn vào đây xem video để được cập nhật tiến độ
+                </div>
+            }
+
+            <div class="schedule-section">
+                <h4 class="text-center mb-4">
+                    <i class="fas fa-calendar-check"></i> Lịch trình chi tiết
+                </h4>
+                @if (Model.Schedule == null || !Model.Schedule.Any())
+                {
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Chưa có lịch trình.
+                    </div>
+                }
+                else
+                {
+                    foreach (var item in Model.Schedule)
+                    {
+                        <div class="schedule-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">@item.Title</h5>
+                                <span class="badge bg-primary">
+                                    <i class="far fa-clock me-1"></i>
+                                    @item.StartTime.ToString("HH:mm") - @item.EndTime.ToString("HH:mm")
+                                </span>
+                            </div>
+                            <p class="mb-0 mt-2">
+                                <i class="fas fa-user-tie text-primary me-2"></i>
+                                Diễn giả: @item.Speaker
+                            </p>
+                        </div>
+                    }
+                }
+            </div>
+
+            <div class="event-info-card mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="mb-0">
+                        <i class="fas fa-file-alt"></i>
+                        Bài thu hoạch
+                    </h4>
+                    @if (User.Identity != null && User.Identity.IsAuthenticated && (User.IsInRole("Admin") || User.IsInRole("Administrator")))
+                    {
+                        <a asp-area="Admin" asp-controller="AdminAssignment" asp-action="Create" asp-route-eventId="@Model.Id" class="btn btn-success btn-sm">
+                            <i class="fas fa-plus me-1"></i>Thêm bài thu hoạch
+                        </a>
+                    }
+                </div>
+                
+                @if (Model.Assignments?.Any() == true)
+                {
+                    @foreach (var assignment in Model.Assignments)
+                    {
+                        <div class="card mb-3 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <h5 class="card-title mb-2">@assignment.Title</h5>
+                                        @if (!string.IsNullOrEmpty(assignment.Description))
+                                        {
+                                            <p class="card-text text-muted mb-2">
+                                                @(assignment.Description.Length > 100 ? assignment.Description.Substring(0, 100) + "..." : assignment.Description)
+                                            </p>
+                                        }
+                                        <div class="d-flex gap-3 flex-wrap">
+                                            @if (assignment.DueDate.HasValue)
+                                            {
+                                                <small class="text-muted">
+                                                    <i class="fas fa-calendar-times me-1"></i>
+                                                    Hạn nộp: @assignment.DueDate.Value.ToString("g")
+                                                </small>
+                                            }
+                                            @if (assignment.MaxScore.HasValue)
+                                            {
+                                                <small class="text-muted">
+                                                    <i class="fas fa-star me-1"></i>
+                                                    Điểm tối đa: @assignment.MaxScore
+                                                </small>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="ms-3">
+                                        <a asp-controller="Assignment" asp-action="View" asp-route-id="@assignment.Id" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-eye me-1"></i>Xem chi tiết
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Sự kiện này chưa có bài thu hoạch.
+                        @if (User.Identity != null && User.Identity.IsAuthenticated && (User.IsInRole("Admin") || User.IsInRole("Administrator")))
+                        {
+                            <span>Nhấn nút "Thêm bài thu hoạch" ở trên để tạo bài thu hoạch cho sự kiện này.</span>
+                        }
+                        else
+                        {
+                            <span>Vui lòng đợi admin tạo bài thu hoạch cho sự kiện này.</span>
+                        }
+                    </div>
+                }
+            </div>
+
+            @{
+                var userEmail = User.Identity?.Name;
+                var currentUserAttendee = Model.Attendees?.FirstOrDefault(a => a.Email == userEmail && a.TicketStatus == "Confirmed");
+            }
+
+            @if (currentUserAttendee != null)
+            {
+                <div class="event-info-card mt-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="mb-0">
+                            <i class="fas fa-file-upload"></i>
+                            Minh chứng tham gia offline
+                        </h4>
+                    </div>
+                    <p class="text-muted mb-3">
+                        Nếu bạn đã tham gia sự kiện offline, vui lòng upload minh chứng (ảnh, PDF hoặc file tài liệu) để xác nhận.
+                    </p>
+                    <div class="d-flex gap-2">
+                        <a asp-controller="Evidence" asp-action="Upload" asp-route-id="@Model.Id" class="btn btn-primary">
+                            <i class="fas fa-upload me-2"></i>Upload minh chứng
+                        </a>
+                        <a asp-controller="Evidence" asp-action="MyEvidence" asp-route-id="@Model.Id" class="btn btn-outline-primary">
+                            <i class="fas fa-list me-2"></i>Xem minh chứng của tôi
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="col-lg-4">
+            <div class="registration-form mb-4">
+                <h4 class="mb-4">📝 Đăng ký tham gia</h4>
+                @if (TempData["RegisterMessage"]?.ToString().Contains("Đăng ký thành công") == true)
+                {
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        @TempData["RegisterMessage"]
+                    </div>
+                }
+                else
+                {
+                    <form asp-action="RegisterAttendee" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                        <input type="hidden" name="EventId" value="@Model.Id" />
+                        
+                        <div class="form-floating mb-3">
+                            <input name="FullName" class="form-control" placeholder="Họ tên" required />
+                            <label>Họ tên <span class="text-danger">*</span></label>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input name="Email" type="email" class="form-control" placeholder="Email" required />
+                            <label>Email <span class="text-danger">*</span></label>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input name="Phone" class="form-control" placeholder="Số điện thoại" />
+                            <label>Số điện thoại</label>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-user-plus me-2"></i>
+                            Đăng ký ngay
+                        </button>
+                    </form>
+
+                    @if (TempData["RegisterMessage"] != null)
+                    {
+                        <div class="alert alert-info mt-3">@TempData["RegisterMessage"]</div>
+                    }
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger mt-3">@TempData["Error"]</div>
+                    }
+                }
+            </div>
+
+            <div class="attendee-section">
+                <h4 class="mb-4">
+                    <i class="fas fa-users"></i>
+                    Người tham gia (@attendeeCount)
+                </h4>
+                @if (Model.Attendees == null || !Model.Attendees.Any())
+                {
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Chưa có người tham gia.
+                    </div>
+                }
+                else
+                {
+                    <div class="list-group">
+                        @foreach (var attendee in Model.Attendees)
+                        {
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0">@attendee.FullName</h6>
+                                        <small class="text-muted">@attendee.Email</small>
+                                    </div>
+                                    @{
+                                        var badgeClass = attendee.TicketStatus switch
+                                        {
+                                            "Pending" => "bg-warning text-dark",
+                                            "Confirmed" => "bg-success",
+                                            "Cancelled" => "bg-danger",
+                                            _ => "bg-secondary"
+                                        };
+                                    }
+                                    <span class="badge @badgeClass">@attendee.TicketStatus</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            @if (Model.Questions?.Any() == true)
+            {
+                <div class="event-info-card mt-4">
+                    <h4 class="mb-4">
+                        <i class="fas fa-question-circle"></i>
+                        Câu hỏi
+                    </h4>
+                    <div class="list-group">
+                        @foreach (var q in Model.Questions.OrderByDescending(q => q.CreatedAt))
+                        {
+                            <div class="list-group-item mb-3 rounded-3 shadow-sm">
+                                <div class="d-flex w-100 justify-content-between align-items-start">
+                                    <h5 class="mb-1 text-primary">@q.AskedBy <small class="text-muted fs-6">(Hỏi lúc: @q.CreatedAt.ToString("g"))</small></h5>
+                                </div>
+                                <p class="mb-1"><strong>Nội dung:</strong> @q.Content</p>
+
+                                @if (!string.IsNullOrEmpty(q.Reply))
+                                {
+                                    <div class="alert alert-success mt-2 p-2 mb-0 border-0" role="alert">
+                                        <strong><i class="fas fa-check-circle me-1"></i> Trả lời từ @q.RepliedBy:</strong>
+                                        <p class="mb-0">@q.Reply</p>
+                                        <small class="text-muted">Trả lời lúc: @q.RepliedAt?.ToString("g")</small>
+                                    </div>
+                                }
+                                else if (User.Identity.IsAuthenticated) // Chỉ hiển thị form trả lời nếu người dùng đã đăng nhập và câu hỏi chưa có trả lời
+                                {
+                                    <form asp-action="ReplyToQuestion" asp-controller="Event" method="post" class="mt-3">
+                                        <input type="hidden" name="questionId" value="@q.Id" />
+                                        <div class="mb-2">
+                                            <label for="replyContent_@q.Id" class="form-label small fw-bold">Nhập câu trả lời:</label>
+                                            <textarea id="replyContent_@q.Id" name="replyContent" class="form-control form-control-sm" rows="2" placeholder="Nhập câu trả lời của bạn..." required></textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-reply me-1"></i>Gửi trả lời
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            <div class="event-info-card mt-4">
+                <h4 class="mb-4">
+                    <i class="fas fa-question"></i>
+                    Đặt câu hỏi
+                </h4>
+                @if (TempData["QuestionMessage"] != null)
+                {
+                    <div class="alert alert-info">@TempData["QuestionMessage"]</div>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+                }
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+                }
+                <form asp-action="AskQuestion" method="post">
+                    <input type="hidden" name="eventId" value="@Model.Id" />
+                    <div class="form-floating mb-3">
+                        <input name="email" type="email" class="form-control" placeholder="Email" required />
+                        <label>Email đã đăng ký <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <textarea name="content" class="form-control" style="height: 100px;" required></textarea>
+                        <label>Nội dung câu hỏi <span class="text-danger">*</span></label>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-paper-plane me-2"></i>
+                        Gửi câu hỏi
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/videoProgress.js"></script>
+}

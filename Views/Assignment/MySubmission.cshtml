@@ -1,0 +1,136 @@
+@model DACSWEBSK.Models.AssignmentSubmission
+@{
+    ViewData["Title"] = "Bài nộp của tôi";
+}
+
+<style>
+    .assignment-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 3rem;
+    }
+
+    .assignment-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        padding: 2rem;
+    }
+
+    .info-card {
+        background: #f8fafc;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+</style>
+
+<div class="assignment-header">
+    <div class="container">
+        <h1 class="display-4 mb-4">Bài nộp của tôi</h1>
+        <p class="lead mb-0">@Model.Assignment?.Title</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="assignment-container">
+        <div class="info-card">
+            <h5><i class="fas fa-calendar-alt me-2"></i>Sự kiện</h5>
+            <p class="mb-0">@Model.Assignment?.Event?.Title</p>
+        </div>
+
+        <div class="info-card">
+            <h5><i class="fas fa-info-circle me-2"></i>Trạng thái</h5>
+            <p class="mb-0">
+                <span class="badge @(Model.Status == "Graded" ? "bg-success" : "bg-warning") fs-6">
+                    @Model.Status
+                </span>
+            </p>
+        </div>
+
+        <div class="info-card">
+            <h5><i class="fas fa-clock me-2"></i>Thông tin nộp bài</h5>
+            <p class="mb-0">
+                <strong>Ngày nộp:</strong> @Model.SubmittedAt.ToString("g")
+            </p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.TextContent))
+        {
+            <div class="info-card">
+                <h5><i class="fas fa-file-alt me-2"></i>Nội dung văn bản</h5>
+                <div class="mt-2 p-3 bg-white rounded border">
+                    @Html.Raw(Model.TextContent.Replace("\n", "<br />"))
+                </div>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.FilePath))
+        {
+            <div class="info-card">
+                <h5><i class="fas fa-file me-2"></i>File đã nộp</h5>
+                <div class="mt-2">
+                    <a asp-action="DownloadFile" asp-route-id="@Model.Id" class="btn btn-primary">
+                        <i class="fas fa-download me-2"></i>@Model.FileName
+                    </a>
+                </div>
+            </div>
+        }
+
+        @if (Model.Score.HasValue)
+        {
+            <div class="info-card border border-success">
+                <h5 class="text-success"><i class="fas fa-star me-2"></i>Điểm số</h5>
+                <p class="mb-0">
+                    <span class="badge bg-success fs-4">
+                        @Model.Score.Value / @(Model.Assignment?.MaxScore ?? 100)
+                    </span>
+                </p>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.Feedback))
+        {
+            <div class="info-card border border-info">
+                <h5 class="text-info"><i class="fas fa-comment me-2"></i>Nhận xét từ giáo viên</h5>
+                <div class="mt-2 p-3 bg-white rounded border">
+                    @Html.Raw(Model.Feedback.Replace("\n", "<br />"))
+                </div>
+                @if (!string.IsNullOrEmpty(Model.GradedBy))
+                {
+                    <small class="text-muted">
+                        <i class="fas fa-user-check me-2"></i>
+                        Chấm bởi: @Model.GradedBy
+                        @if (Model.GradedAt.HasValue)
+                        {
+                            <span>lúc @Model.GradedAt.Value.ToString("g")</span>
+                        }
+                    </small>
+                }
+            </div>
+        }
+        else if (Model.Status == "Graded")
+        {
+            <div class="info-card">
+                <p class="text-muted mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Bài của bạn đã được chấm điểm nhưng chưa có nhận xét.
+                </p>
+            </div>
+        }
+
+        <div class="text-center mt-4">
+            <a asp-action="View" asp-route-id="@Model.AssignmentId" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Quay lại
+            </a>
+            @if (Model.Status != "Graded" || (Model.Assignment?.DueDate.HasValue == false || Model.Assignment?.DueDate > DateTime.Now))
+            {
+                <a asp-action="Submit" asp-route-id="@Model.AssignmentId" class="btn btn-warning">
+                    <i class="fas fa-edit me-2"></i>Nộp lại / Chỉnh sửa
+                </a>
+            }
+        </div>
+    </div>
+</div>
+

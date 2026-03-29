@@ -1,0 +1,182 @@
+@{
+    ViewData["Title"] = "Nộp bài thu hoạch";
+    var assignment = ViewBag.Assignment as DACSWEBSK.Models.EventAssignment;
+    var attendee = ViewBag.Attendee as DACSWEBSK.Models.Attendee;
+    var existingSubmission = ViewBag.ExistingSubmission as DACSWEBSK.Models.AssignmentSubmission;
+}
+
+<style>
+    .assignment-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 3rem;
+    }
+
+    .assignment-form-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        padding: 2rem;
+    }
+
+    .form-control, .form-select {
+        border: 1px solid rgba(31, 38, 135, 0.1);
+        padding: 0.75rem 1.25rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+        color: white;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+        color: white;
+    }
+</style>
+
+<div class="assignment-header">
+    <div class="container">
+        <h1 class="display-4 mb-4">Nộp bài thu hoạch</h1>
+        <p class="lead mb-0">@assignment?.Title</p>
+    </div>
+</div>
+
+<div class="container">
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="assignment-form-container">
+        @if (existingSubmission != null)
+        {
+            <div class="alert alert-info mb-4">
+                <i class="fas fa-info-circle me-2"></i>
+                Bạn đã nộp bài trước đó. Bạn có thể nộp lại để cập nhật bài nộp.
+            </div>
+        }
+
+        <form asp-action="Submit" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="assignmentId" value="@assignment?.Id" />
+
+            @if (assignment?.AllowTextSubmission == true)
+            {
+                <div class="mb-4">
+                    <label class="form-label">
+                        <i class="fas fa-keyboard me-2"></i>Nội dung văn bản
+                        @if (!assignment.AllowFileUpload)
+                        {
+                            <span class="text-danger">*</span>
+                        }
+                    </label>
+                    <textarea name="textContent" class="form-control" rows="10" 
+                              placeholder="Nhập nội dung bài thu hoạch của bạn...">@(existingSubmission?.TextContent)</textarea>
+                    <small class="text-muted">Bạn có thể nhập trực tiếp nội dung bài thu hoạch vào đây</small>
+                </div>
+            }
+
+            @if (assignment?.AllowFileUpload == true)
+            {
+                <div class="mb-4">
+                    <label class="form-label">
+                        <i class="fas fa-file-upload me-2"></i>Upload file
+                        @if (!assignment.AllowTextSubmission)
+                        {
+                            <span class="text-danger">*</span>
+                        }
+                    </label>
+                    <input type="file" name="fileUpload" class="form-control" 
+                           accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png" />
+                    <small class="text-muted">
+                        Chấp nhận file: PDF, DOC, DOCX, TXT, JPG, JPEG, PNG (tối đa 10MB)
+                        @if (existingSubmission != null && !string.IsNullOrEmpty(existingSubmission.FileName))
+                        {
+                            <br />
+                            <span class="text-info">
+                                <i class="fas fa-info-circle me-1"></i>
+                                File hiện tại: @existingSubmission.FileName (sẽ được thay thế nếu bạn upload file mới)
+                            </span>
+                        }
+                    </small>
+                </div>
+            }
+
+            @if (assignment?.DueDate.HasValue == true)
+            {
+                <div class="alert alert-warning">
+                    <i class="fas fa-clock me-2"></i>
+                    <strong>Hạn nộp:</strong> @assignment.DueDate.Value.ToString("g")
+                    @if (assignment.DueDate.Value < DateTime.Now)
+                    {
+                        <span class="text-danger">(Đã quá hạn!)</span>
+                    }
+                </div>
+            }
+
+            <div class="d-flex justify-content-center gap-3 mt-5">
+                <a asp-action="View" asp-route-id="@assignment?.Id" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Quay lại
+                </a>
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-paper-plane me-2"></i>
+                    @(existingSubmission != null ? "Cập nhật bài nộp" : "Nộp bài")
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Validate form
+        document.querySelector('form').addEventListener('submit', function(e) {
+            var textContent = document.querySelector('textarea[name="textContent"]')?.value.trim();
+            var fileUpload = document.querySelector('input[name="fileUpload"]')?.files[0];
+            var allowText = @(assignment?.AllowTextSubmission == true ? "true" : "false");
+            var allowFile = @(assignment?.AllowFileUpload == true ? "true" : "false");
+
+            if (!textContent && !fileUpload) {
+                e.preventDefault();
+                alert('Vui lòng nhập văn bản hoặc upload file!');
+                return false;
+            }
+
+            if (textContent && !allowText) {
+                e.preventDefault();
+                alert('Bài thu hoạch này không cho phép nộp văn bản!');
+                return false;
+            }
+
+            if (fileUpload && !allowFile) {
+                e.preventDefault();
+                alert('Bài thu hoạch này không cho phép upload file!');
+                return false;
+            }
+
+            if (fileUpload && fileUpload.size > 10 * 1024 * 1024) {
+                e.preventDefault();
+                alert('File không được vượt quá 10MB!');
+                return false;
+            }
+        });
+    </script>
+}
+

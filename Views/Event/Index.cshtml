@@ -1,0 +1,540 @@
+﻿@model IEnumerable<DACSWEBSK.Models.Event>
+@{
+    ViewData["Title"] = "Sự Kiện";
+}
+
+<style>
+    :root {
+        --primary-color: #667eea;
+        --secondary-color: #764ba2;
+        --accent-color: #f093fb;
+        --success-color: #4ecdc4;
+        --warning-color: #f38ba8;
+        --text-color: #2d3748;
+        --light-bg: #f7fafc;
+        --glass-bg: rgba(255, 255, 255, 0.25);
+        --glass-border: rgba(255, 255, 255, 0.18);
+        --event-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --accent-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --success-gradient: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+        --dark-gradient: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+    }
+
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background-attachment: fixed;
+        font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: var(--text-color);
+        line-height: 1.6;
+    }
+
+    /* Hero Section */
+    .hero-section {
+        position: relative;
+        color: white;
+        padding: 200px 20px;
+        text-align: center;
+        overflow: hidden;
+        min-height: 500px;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.2)), 
+                  url('/images/event-hero.jpg') center/cover no-repeat;
+        background-attachment: fixed;
+        margin-bottom: 5rem;
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 30% 70%, rgba(102, 126, 234, 0.3) 0%, transparent 50%),
+                    radial-gradient(circle at 70% 30%, rgba(240, 147, 251, 0.2) 0%, transparent 50%);
+        pointer-events: none;
+    }
+
+    .hero-section h1 {
+        font-size: 4rem;
+        font-weight: 800;
+        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        margin-bottom: 2rem;
+        animation: heroFadeIn 1.2s ease-out;
+        background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .hero-section p {
+        font-size: 1.4rem;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        margin-bottom: 3rem;
+        animation: heroFadeIn 1.4s ease-out;
+    }
+
+    /* Search Section */
+    .search-section {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 25px;
+        padding: 2rem;
+        margin-top: -50px;
+        margin-bottom: 3rem;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        animation: slideInUp 0.8s ease-out;
+    }
+
+    .form-control, .form-select {
+        border-radius: 50px;
+        padding: 12px 25px;
+        border: 1px solid var(--glass-border);
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+    }
+
+    /* Event Cards */
+    .card {
+        border: none;
+        border-radius: 25px;
+        overflow: hidden;
+        backdrop-filter: blur(20px);
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        animation: cardSlideUp 0.8s ease-out;
+    }
+
+    .card:hover {
+        transform: translateY(-15px) scale(1.02);
+        box-shadow: 0 20px 60px rgba(31, 38, 135, 0.5);
+    }
+
+    .card-img-top {
+        height: 250px;
+        object-fit: cover;
+        transition: all 0.4s ease;
+    }
+
+    .card:hover .card-img-top {
+        transform: scale(1.08);
+    }
+
+    /* Badges */
+    .badge {
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .badge.bg-success {
+        background: var(--success-gradient) !important;
+    }
+
+    .badge.bg-primary {
+        background: var(--event-gradient) !important;
+    }
+
+    .badge.bg-info {
+        background: var(--accent-gradient) !important;
+    }
+
+    /* Featured Categories */
+    .category-card {
+        text-align: center;
+        padding: 2rem;
+        border-radius: 25px;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        transition: all 0.4s ease;
+    }
+
+    .category-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 45px rgba(31, 38, 135, 0.4);
+    }
+
+    .category-icon {
+        font-size: 3rem;
+        margin-bottom: 1.5rem;
+        color: var(--primary-color);
+    }
+
+    /* Call to Action */
+    .cta-section {
+        background: var(--event-gradient);
+        padding: 5rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cta-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+        pointer-events: none;
+    }
+
+    /* Animations */
+    @@keyframes heroFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes cardSlideUp {
+        from {
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .hero-section {
+            padding: 150px 20px;
+        }
+
+        .hero-section h1 {
+            font-size: 2.8rem;
+        }
+
+        .search-section {
+            margin-top: -30px;
+            padding: 1.5rem;
+        }
+
+        .card {
+            margin-bottom: 2rem;
+        }
+    }
+</style>
+
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <h1 class="display-3 fw-bold mb-4">Khám Phá Sự Kiện</h1>
+        <p class="lead mb-4">Tham gia các sự kiện độc đáo và ý nghĩa cùng cộng đồng</p>
+        <a href="#upcoming-events" class="btn btn-primary btn-lg">
+            <i class="fas fa-calendar-check me-2"></i>Xem Sự Kiện
+        </a>
+    </div>
+</div>
+
+<!-- Search and Filter Section -->
+<div class="container">
+    <div class="search-section">
+        <form asp-action="Index" method="get" class="row g-3" id="searchForm">
+            <div class="col-md-7">
+                <div class="input-group position-relative">
+                    <span class="input-group-text bg-white border-end-0" style="border-radius: 50px 0 0 50px;">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" 
+                           name="searchString" 
+                           id="searchInput"
+                           class="form-control border-start-0" 
+                           placeholder="Tìm kiếm theo tên, mô tả, địa điểm..." 
+                           value="@ViewBag.CurrentSearch"
+                           autocomplete="off">
+                    <button type="submit" class="btn btn-primary px-4" style="border-radius: 0 50px 50px 0;">
+                        <i class="fas fa-search me-2"></i>Tìm kiếm
+                    </button>
+                    @if (!string.IsNullOrEmpty(ViewBag.CurrentSearch as string))
+                    {
+                        <a href="@Url.Action("Index", new { status = ViewBag.CurrentStatus })" 
+                           class="btn btn-outline-secondary ms-2" 
+                           style="border-radius: 50px;"
+                           title="Xóa tìm kiếm">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    }
+                </div>
+                <small class="text-muted mt-2 d-block">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Bạn có thể tìm kiếm nhiều từ khóa, ví dụ: "hội thảo công nghệ"
+                </small>
+            </div>
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0" style="border-radius: 50px 0 0 50px;">
+                        <i class="fas fa-filter text-muted"></i>
+                    </span>
+                    <select name="status" 
+                            id="statusFilter"
+                            class="form-select border-start-0" 
+                            style="border-radius: 0 50px 50px 0;"
+                            onchange="document.getElementById('searchForm').submit();">
+                        @if (ViewBag.CurrentStatus == "All" || ViewBag.CurrentStatus == null)
+                        {
+                            <option value="All" selected>
+                                <i class="fas fa-list me-2"></i>Tất cả trạng thái
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="All">
+                                <i class="fas fa-list me-2"></i>Tất cả trạng thái
+                            </option>
+                        }
+                        
+                        @if (ViewBag.CurrentStatus == "Upcoming")
+                        {
+                            <option value="Upcoming" selected>
+                                <i class="fas fa-clock me-2"></i>Sắp diễn ra
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="Upcoming">
+                                <i class="fas fa-clock me-2"></i>Sắp diễn ra
+                            </option>
+                        }
+                        
+                        @if (ViewBag.CurrentStatus == "Ongoing")
+                        {
+                            <option value="Ongoing" selected>
+                                <i class="fas fa-play me-2"></i>Đang diễn ra
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="Ongoing">
+                                <i class="fas fa-play me-2"></i>Đang diễn ra
+                            </option>
+                        }
+                        
+                        @if (ViewBag.CurrentStatus == "Completed")
+                        {
+                            <option value="Completed" selected>
+                                <i class="fas fa-check me-2"></i>Đã kết thúc
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="Completed">
+                                <i class="fas fa-check me-2"></i>Đã kết thúc
+                            </option>
+                        }
+                        
+                        @if (ViewBag.CurrentStatus == "Cancelled")
+                        {
+                            <option value="Cancelled" selected>
+                                <i class="fas fa-ban me-2"></i>Đã hủy
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="Cancelled">
+                                <i class="fas fa-ban me-2"></i>Đã hủy
+                            </option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Events Section -->
+<section id="upcoming-events" class="py-5">
+    <div class="container">
+        <h2 class="section-title text-center mb-5">Tất Cả Sự Kiện</h2>
+        <div class="row g-4">
+            @foreach (var item in Model)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100">
+                        <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "/images/default-event.jpg" : item.ImageUrl)" 
+                             class="card-img-top" alt="@item.Title">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                @{
+                                    var currentStatus = item.Status == "Cancelled" ? "Cancelled" : 
+                                        (DateTime.Now < item.StartTime ? "Upcoming" :
+                                         DateTime.Now <= item.EndTime ? "Ongoing" : "Completed");
+                                }
+                                <span class="badge @(currentStatus == "Upcoming" ? "bg-success" : 
+                                                   currentStatus == "Ongoing" ? "bg-primary" : 
+                                                   currentStatus == "Cancelled" ? "bg-danger" :
+                                                   "bg-secondary")">
+                                    <i class="fas @(currentStatus == "Upcoming" ? "fa-clock" : 
+                                                  currentStatus == "Ongoing" ? "fa-play" : 
+                                                  currentStatus == "Cancelled" ? "fa-ban" :
+                                                  "fa-check") me-2"></i>
+                                    @(currentStatus == "Upcoming" ? "Sắp diễn ra" :
+                                      currentStatus == "Ongoing" ? "Đang diễn ra" :
+                                      currentStatus == "Cancelled" ? "Đã hủy" :
+                                      "Đã kết thúc")
+                                </span>
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar-alt me-2"></i>
+                                    @item.StartTime.ToString("dd/MM/yyyy HH:mm")
+                                </small>
+                            </div>
+                            <h5 class="card-title">@item.Title</h5>
+                            <p class="card-text text-muted">@(item.Description?.Length > 100 ? item.Description.Substring(0, 100) + "..." : item.Description)</p>
+                            <div class="mt-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                                    <span>@item.Location?.Name</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge bg-info">
+                                        <i class="fas fa-users me-2"></i>
+                                        @{
+                                            var confirmedCount = item.Attendees.Count(a => a.TicketStatus == "Confirmed");
+                                            var pendingCount = item.Attendees.Count(a => a.TicketStatus == "Pending");
+                                        }
+                                        @if (confirmedCount > 0 || pendingCount > 0)
+                                        {
+                                            <span>@confirmedCount/@item.Attendees.Count</span>
+                                            if (pendingCount > 0)
+                                            {
+                                                <small class="ms-1">(@pendingCount chờ duyệt)</small>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span>Chưa có người đăng ký</span>
+                                        }
+                                    </span>
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-primary">
+                                        <i class="fas fa-info-circle me-2"></i>Chi tiết
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- Featured Categories -->
+<section class="py-5" style="background: var(--light-bg)">
+    <div class="container">
+        <h2 class="section-title text-center mb-5">Các Loại Sự Kiện</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="category-card h-100">
+                    <i class="fas fa-calendar-check category-icon"></i>
+                    <h5>Sự Kiện Sắp Diễn Ra</h5>
+                    <p class="text-muted">Đăng ký tham gia các sự kiện mới nhất và hấp dẫn nhất</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="category-card h-100">
+                    <i class="fas fa-video category-icon"></i>
+                    <h5>Sự Kiện Trực Tuyến</h5>
+                    <p class="text-muted">Tham gia các sự kiện trực tuyến với nội dung đa dạng</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="category-card h-100">
+                    <i class="fas fa-users category-icon"></i>
+                    <h5>Sự Kiện Cộng Đồng</h5>
+                    <p class="text-muted">Gặp gỡ và kết nối với cộng đồng trong các sự kiện đặc biệt</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="cta-section text-white text-center">
+    <div class="container">
+        <h2 class="mb-4">Bạn muốn tham dự sự kiện?</h2>
+        <p class="lead mb-4">Hãy để chúng tôi giúp bạn tạo nên những trải nghiệm đáng nhớ</p>
+        <a href="#" class="btn btn-light btn-lg">
+            <i class="fas fa-paper-plane me-2"></i>Liên hệ ngay
+        </a>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        // Add smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Tìm kiếm khi nhấn Enter
+        document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('searchForm').submit();
+            }
+        });
+
+        // Highlight từ khóa tìm kiếm trong kết quả (nếu có)
+        @if (!string.IsNullOrEmpty(ViewBag.CurrentSearch as string))
+        {
+            <text>
+            document.addEventListener('DOMContentLoaded', function() {
+                try {
+                    const searchTerm = '@Html.Raw(ViewBag.CurrentSearch)';
+                    if (searchTerm && searchTerm.trim().length > 0) {
+                        const searchTerms = searchTerm.toLowerCase().split(' ').filter(term => term.length > 0);
+                        
+                        // Escape special regex characters
+                        function escapeRegex(str) {
+                            return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        }
+                        
+                        // Highlight trong title và description
+                        document.querySelectorAll('.card-title, .card-text').forEach(element => {
+                            let html = element.innerHTML;
+                            searchTerms.forEach(term => {
+                                const escapedTerm = escapeRegex(term);
+                                const regex = new RegExp(`(${escapedTerm})`, 'gi');
+                                html = html.replace(regex, '<mark style="background-color: #ffeb3b; padding: 2px 4px; border-radius: 3px;">$1</mark>');
+                            });
+                            element.innerHTML = html;
+                        });
+                    }
+                } catch (e) {
+                    console.error('Error highlighting search terms:', e);
+                }
+            });
+            </text>
+        }
+    </script>
+}

@@ -1,0 +1,288 @@
+@{
+    ViewData["Title"] = "Upload minh chứng tham gia offline";
+    var evt = ViewBag.Event as DACSWEBSK.Models.Event;
+    var attendee = ViewBag.Attendee as DACSWEBSK.Models.Attendee;
+    var existingEvidences = ViewBag.ExistingEvidences as List<DACSWEBSK.Models.OfflineAttendanceEvidence> ?? new List<DACSWEBSK.Models.OfflineAttendanceEvidence>();
+}
+
+<style>
+    .evidence-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 3rem;
+    }
+
+    .evidence-form-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .evidence-list-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        padding: 2rem;
+    }
+
+    .form-control, .form-select {
+        border: 1px solid rgba(31, 38, 135, 0.1);
+        padding: 0.75rem 1.25rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+        color: white;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+        color: white;
+    }
+
+    .file-item {
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .file-item:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .status-pending {
+        background-color: #ffc107;
+        color: #000;
+    }
+
+    .status-approved {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .status-rejected {
+        background-color: #dc3545;
+        color: white;
+    }
+</style>
+
+<div class="evidence-header">
+    <div class="container">
+        <h1 class="display-4 mb-4">Upload minh chứng tham gia offline</h1>
+        <p class="lead mb-0">@evt?.Title</p>
+    </div>
+</div>
+
+<div class="container">
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@Html.Raw(TempData["Error"])
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="evidence-form-container">
+        <h3 class="mb-4">
+            <i class="fas fa-upload me-2"></i>Upload minh chứng mới
+        </h3>
+        <p class="text-muted mb-4">
+            Bạn có thể upload nhiều file minh chứng (ảnh, PDF hoặc file tài liệu) để xác nhận đã tham gia sự kiện offline.
+            Mỗi lần upload tối đa 10 file, mỗi file tối đa 10MB.
+        </p>
+
+        <form asp-action="Upload" method="post" enctype="multipart/form-data" id="uploadForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="eventId" value="@evt?.Id" />
+
+            <div class="mb-4">
+                <label class="form-label">
+                    <i class="fas fa-file-upload me-2"></i>Chọn file minh chứng
+                    <span class="text-danger">*</span>
+                </label>
+                <input type="file" name="files" class="form-control" 
+                       accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.bmp" 
+                       multiple />
+                <small class="text-muted">
+                    Chấp nhận file: PDF, DOC, DOCX, JPG, JPEG, PNG, GIF, BMP (tối đa 10MB/file, tối đa 10 file/lần)
+                </small>
+                <div id="fileList" class="mt-3"></div>
+            </div>
+
+            <div class="d-flex justify-content-center gap-3 mt-5">
+                <a asp-action="Details" asp-controller="Event" asp-route-id="@evt?.Id" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Quay lại
+                </a>
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-paper-plane me-2"></i>Upload minh chứng
+                </button>
+            </div>
+        </form>
+    </div>
+
+    @if (existingEvidences.Any())
+    {
+        <div class="evidence-list-container">
+            <h3 class="mb-4">
+                <i class="fas fa-list me-2"></i>Danh sách minh chứng đã upload
+            </h3>
+
+            @foreach (var evidence in existingEvidences)
+            {
+                <div class="file-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h5 class="mb-2">
+                                <i class="fas fa-file me-2"></i>@evidence.FileName
+                            </h5>
+                            <div class="mb-2">
+                                <span class="status-badge status-@evidence.Status.ToLower()">
+                                    @if (evidence.Status == "Pending")
+                                    {
+                                        <text><i class="fas fa-clock me-1"></i>Đang chờ duyệt</text>
+                                    }
+                                    else if (evidence.Status == "Approved")
+                                    {
+                                        <text><i class="fas fa-check-circle me-1"></i>Đã duyệt</text>
+                                    }
+                                    else if (evidence.Status == "Rejected")
+                                    {
+                                        <text><i class="fas fa-times-circle me-1"></i>Đã từ chối</text>
+                                    }
+                                </span>
+                            </div>
+                            <div class="text-muted small mb-2">
+                                <i class="fas fa-calendar me-1"></i>Upload: @evidence.UploadedAt.ToString("g")
+                                @if (evidence.ProcessedAt.HasValue)
+                                {
+                                    <span class="ms-3">
+                                        <i class="fas fa-check me-1"></i>Xử lý: @evidence.ProcessedAt.Value.ToString("g")
+                                    </span>
+                                }
+                            </div>
+                            @if (!string.IsNullOrEmpty(evidence.RejectionReason))
+                            {
+                                <div class="alert alert-danger mt-2 mb-0">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <strong>Lý do từ chối:</strong> @evidence.RejectionReason
+                                </div>
+                            }
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a asp-action="DownloadFile" asp-route-id="@evidence.Id" class="btn btn-sm btn-primary">
+                                <i class="fas fa-download"></i>
+                            </a>
+                            @if (evidence.Status == "Pending")
+                            {
+                                <form asp-action="Delete" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn xóa minh chứng này?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@evidence.Id" />
+                                    <button type="submit" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Hiển thị danh sách file đã chọn
+        document.querySelector('input[name="files"]').addEventListener('change', function(e) {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '';
+            
+            if (e.target.files.length > 0) {
+                const list = document.createElement('ul');
+                list.className = 'list-group';
+                
+                for (let i = 0; i < e.target.files.length; i++) {
+                    const file = e.target.files[i];
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                    
+                    const fileSize = (file.size / 1024 / 1024).toFixed(2);
+                    li.innerHTML = `
+                        <span>
+                            <i class="fas fa-file me-2"></i>${file.name}
+                            <small class="text-muted ms-2">(${fileSize} MB)</small>
+                        </span>
+                    `;
+                    
+                    if (file.size > 10 * 1024 * 1024) {
+                        li.classList.add('list-group-item-danger');
+                        li.innerHTML += '<span class="badge bg-danger">Vượt quá 10MB</span>';
+                    }
+                    
+                    list.appendChild(li);
+                }
+                
+                fileList.appendChild(list);
+            }
+        });
+
+        // Validate form
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            const files = document.querySelector('input[name="files"]').files;
+            
+            if (files.length === 0) {
+                e.preventDefault();
+                alert('Vui lòng chọn ít nhất một file để upload!');
+                return false;
+            }
+
+            if (files.length > 10) {
+                e.preventDefault();
+                alert('Chỉ được upload tối đa 10 file!');
+                return false;
+            }
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file.size > 10 * 1024 * 1024) {
+                    e.preventDefault();
+                    alert(`File "${file.name}" vượt quá 10MB!`);
+                    return false;
+                }
+            }
+        });
+    </script>
+}
+

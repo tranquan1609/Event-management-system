@@ -1,0 +1,179 @@
+@model List<DACSWEBSK.Models.OfflineAttendanceEvidence>
+@{
+    ViewData["Title"] = "Minh chứng của tôi";
+    var evt = ViewBag.Event as DACSWEBSK.Models.Event;
+    var attendee = ViewBag.Attendee as DACSWEBSK.Models.Attendee;
+}
+
+<style>
+    .evidence-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 3rem;
+    }
+
+    .evidence-list-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        padding: 2rem;
+    }
+
+    .file-item {
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .file-item:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .status-pending {
+        background-color: #ffc107;
+        color: #000;
+    }
+
+    .status-approved {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .status-rejected {
+        background-color: #dc3545;
+        color: white;
+    }
+</style>
+
+<div class="evidence-header">
+    <div class="container">
+        <h1 class="display-4 mb-4">Minh chứng của tôi</h1>
+        <p class="lead mb-0">@evt?.Title</p>
+    </div>
+</div>
+
+<div class="container">
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>
+            <i class="fas fa-list me-2"></i>Danh sách minh chứng
+        </h3>
+        <a asp-action="Upload" asp-route-id="@evt?.Id" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Upload minh chứng mới
+        </a>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="evidence-list-container text-center py-5">
+            <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">Chưa có minh chứng nào</h5>
+            <p class="text-muted">Hãy upload minh chứng để xác nhận tham gia sự kiện offline</p>
+            <a asp-action="Upload" asp-route-id="@evt?.Id" class="btn btn-primary mt-3">
+                <i class="fas fa-upload me-2"></i>Upload minh chứng
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="evidence-list-container">
+            @foreach (var evidence in Model)
+            {
+                <div class="file-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h5 class="mb-2">
+                                <i class="fas fa-file me-2"></i>@evidence.FileName
+                            </h5>
+                            <div class="mb-2">
+                                <span class="status-badge status-@evidence.Status.ToLower()">
+                                    @if (evidence.Status == "Pending")
+                                    {
+                                        <text><i class="fas fa-clock me-1"></i>Đang chờ duyệt</text>
+                                    }
+                                    else if (evidence.Status == "Approved")
+                                    {
+                                        <text><i class="fas fa-check-circle me-1"></i>Đã duyệt</text>
+                                    }
+                                    else if (evidence.Status == "Rejected")
+                                    {
+                                        <text><i class="fas fa-times-circle me-1"></i>Đã từ chối</text>
+                                    }
+                                </span>
+                            </div>
+                            <div class="text-muted small mb-2">
+                                <i class="fas fa-calendar me-1"></i>Upload: @evidence.UploadedAt.ToString("g")
+                                @if (evidence.ProcessedAt.HasValue)
+                                {
+                                    <span class="ms-3">
+                                        <i class="fas fa-check me-1"></i>Xử lý: @evidence.ProcessedAt.Value.ToString("g")
+                                    </span>
+                                    @if (!string.IsNullOrEmpty(evidence.ProcessedBy))
+                                    {
+                                        <span class="ms-3">
+                                            <i class="fas fa-user me-1"></i>Bởi: @evidence.ProcessedBy
+                                        </span>
+                                    }
+                                }
+                            </div>
+                            @if (!string.IsNullOrEmpty(evidence.RejectionReason))
+                            {
+                                <div class="alert alert-danger mt-2 mb-0">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <strong>Lý do từ chối:</strong> @evidence.RejectionReason
+                                </div>
+                            }
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a asp-action="DownloadFile" asp-route-id="@evidence.Id" class="btn btn-sm btn-primary" title="Tải xuống">
+                                <i class="fas fa-download"></i>
+                            </a>
+                            @if (evidence.Status == "Pending")
+                            {
+                                <form asp-action="Delete" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn xóa minh chứng này?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@evidence.Id" />
+                                    <button type="submit" class="btn btn-sm btn-danger" title="Xóa">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <div class="mt-4">
+        <a asp-action="Details" asp-controller="Event" asp-route-id="@evt?.Id" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại chi tiết sự kiện
+        </a>
+    </div>
+</div>
+

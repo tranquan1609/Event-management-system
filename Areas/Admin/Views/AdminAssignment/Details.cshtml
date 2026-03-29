@@ -1,0 +1,136 @@
+@model DACSWEBSK.Models.EventAssignment
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Chi tiết bài thu hoạch";
+}
+
+<style>
+    .assignment-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+    }
+
+    .assignment-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        padding: 2rem;
+    }
+
+    .info-card {
+        background: #f8fafc;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+</style>
+
+<div class="assignment-header">
+    <div class="container">
+        <h1 class="display-6 mb-0">
+            <i class="fas fa-file-alt me-2"></i>
+            Chi tiết bài thu hoạch
+        </h1>
+    </div>
+</div>
+
+<div class="container">
+    <div class="assignment-container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4>@Model.Title</h4>
+            <div>
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                    <i class="fas fa-edit me-2"></i>Sửa
+                </a>
+                <a asp-action="ManageSubmissions" asp-route-id="@Model.Id" class="btn btn-success">
+                    <i class="fas fa-list me-2"></i>Quản lý bài nộp
+                </a>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Quay lại
+                </a>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <h5><i class="fas fa-calendar-alt me-2"></i>Sự kiện</h5>
+            <p class="mb-0">@Model.Event?.Title</p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.Description))
+        {
+            <div class="info-card">
+                <h5><i class="fas fa-align-left me-2"></i>Mô tả</h5>
+                <p class="mb-0">@Model.Description</p>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.Instructions))
+        {
+            <div class="info-card">
+                <h5><i class="fas fa-info-circle me-2"></i>Hướng dẫn</h5>
+                <p class="mb-0">@Html.Raw(Model.Instructions.Replace("\n", "<br />"))</p>
+            </div>
+        }
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="info-card">
+                    <h5><i class="fas fa-calendar-times me-2"></i>Hạn nộp</h5>
+                    <p class="mb-0">
+                        @if (Model.DueDate.HasValue)
+                        {
+                            <span class="@(Model.DueDate.Value < DateTime.Now ? "text-danger" : "")">
+                                @Model.DueDate.Value.ToString("g")
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Không giới hạn</span>
+                        }
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="info-card">
+                    <h5><i class="fas fa-star me-2"></i>Điểm tối đa</h5>
+                    <p class="mb-0">@(Model.MaxScore?.ToString() ?? "Không giới hạn")</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <h5><i class="fas fa-cog me-2"></i>Cài đặt</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">
+                        <i class="fas fa-file-upload me-2"></i>
+                        Cho phép upload file: 
+                        <span class="badge @(Model.AllowFileUpload ? "bg-success" : "bg-secondary")">
+                            @(Model.AllowFileUpload ? "Có" : "Không")
+                        </span>
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-0">
+                        <i class="fas fa-keyboard me-2"></i>
+                        Cho phép nhập văn bản: 
+                        <span class="badge @(Model.AllowTextSubmission ? "bg-success" : "bg-secondary")">
+                            @(Model.AllowTextSubmission ? "Có" : "Không")
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <h5><i class="fas fa-list me-2"></i>Thống kê</h5>
+            <p class="mb-0">
+                Tổng số bài nộp: <span class="badge bg-primary">@Model.Submissions?.Count ?? 0</span>
+            </p>
+        </div>
+    </div>
+</div>
+

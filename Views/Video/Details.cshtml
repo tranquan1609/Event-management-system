@@ -1,0 +1,738 @@
+@model DACSWEBSK.Models.Video
+
+@{
+    ViewData["Title"] = "Video Details";
+    string videoId = "";
+    bool isYouTubeUrl = false;
+    bool isEmbedUrl = false;
+
+    // Lấy YouTube video ID
+    if (!string.IsNullOrEmpty(Model.Url))
+    {
+        // Kiểm tra các định dạng YouTube URL - cải thiện regex để bắt nhiều trường hợp hơn
+        // Hỗ trợ: youtu.be/xxx, youtube.com/watch?v=xxx, youtube.com/embed/xxx, youtube.com/v/xxx
+        var youtubePatterns = new[] {
+            @"(?:youtu\.be/|youtube\.com/(?:watch\?v=|embed/|v/|.+\?v=))([\w-]{11})",
+            @"youtube\.com/embed/([\w-]{11})",
+            @"youtube\.com/v/([\w-]{11})",
+            @"youtube\.com/watch\?.*v=([\w-]{11})"
+        };
+        
+        foreach (var pattern in youtubePatterns)
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(Model.Url, pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (match.Success && match.Groups.Count > 1 && !string.IsNullOrEmpty(match.Groups[1].Value))
+            {
+                videoId = match.Groups[1].Value;
+                isYouTubeUrl = true;
+                break;
+            }
+        }
+        
+        // Kiểm tra nếu là embed URL (không phải YouTube)
+        if (!isYouTubeUrl && (Model.Url.Contains("embed") || Model.Url.Contains("iframe")))
+        {
+            isEmbedUrl = true;
+        }
+    }
+}
+
+<div class="container-fluid px-0 mt-4">
+    <div class="row g-4">
+        <!-- Video player bên trái, thông tin bên phải -->
+        <div class="col-lg-8 col-md-12 mb-3">
+            @* Hiển thị thông báo nếu attendee chưa được duyệt (chỉ ảnh hưởng tracking, không chặn video) *@
+            @if (ViewBag.IsApproved == false && ViewBag.TicketStatus != null)
+            {
+                <div class="alert alert-info mb-3" role="alert">
+                    <h5 class="alert-heading"><i class="fas fa-info-circle"></i> Thông tin trạng thái</h5>
+                    <p class="mb-0">
+                        Bạn đã đăng ký tham gia sự kiện nhưng chưa được duyệt. Trạng thái hiện tại: <strong>@ViewBag.TicketStatus</strong>
+                    </p>
+                    <p class="mb-0 mt-2"><small>Bạn có thể xem video, nhưng tiến độ xem sẽ không được lưu lại cho đến khi được duyệt.</small></p>
+                </div>
+            }
+            else if (ViewBag.IsApproved == false && ViewBag.CanTrackProgress == false)
+            {
+                <div class="alert alert-info mb-3" role="alert">
+                    <h5 class="alert-heading"><i class="fas fa-info-circle"></i> Thông tin</h5>
+                    <p class="mb-0"><small>Tiến độ xem video sẽ không được lưu lại. Vui lòng đăng nhập và đăng ký tham gia sự kiện để theo dõi tiến độ.</small></p>
+                </div>
+            }
+            
+            @* Luôn hiển thị video player nếu có URL hợp lệ *@
+            @if (isYouTubeUrl && !string.IsNullOrEmpty(videoId))
+            {
+                <div class="ratio ratio-16x9 mb-3 video-embed-wrapper">
+                    <div id="player"></div>
+                </div>
+
+                @* Thêm CSRF token *@
+                @Html.AntiForgeryToken()
+
+                @* Khởi tạo player và tracking *@
+                <script>
+                    // Khởi tạo YouTube player với attendeeId và initialViewDuration
+                    var attendeeId = @(ViewBag.AttendeeId != null ? ViewBag.AttendeeId : "null");
+                    var initialViewDuration = @(ViewBag.InitialViewDuration ?? 0);
+                    var youtubeVideoId = '@Html.Raw(videoId)';
+                    var videoDbId = @Model.Id;
+                    var videoDuration = @Model.Duration;
+
+                    console.log('Video Details - attendeeId:', attendeeId, 'youtubeVideoId:', youtubeVideoId, 'videoDbId:', videoDbId);
+
+                    // Đảm bảo videoProgress được khởi tạo
+                    if (typeof videoProgress === 'undefined') {
+                        window.videoProgress = {
+                            lastSentProgress: 0,
+                            duration: 0,
+                            lastUpdateTime: Date.now(),
+                            updateInterval: 5000,
+                            videoId: null,
+                            attendeeId: null,
+                            player: null,
+                            trackingInterval: null,
+                            accumulatedWatchedTime: 0,
+                            lastPlayheadPosition: 0
+                        };
+                    }
+
+                    // Đặt videoDbId vào videoProgress để updateProgress gửi đúng
+                    videoProgress.videoId = videoDbId;
+                    videoProgress.duration = videoDuration;
+
+                    // Định nghĩa hàm khởi tạo player
+                    function initializeVideoPlayer() {
+                        console.log('Initializing video player, attendeeId:', attendeeId, 'youtubeVideoId:', youtubeVideoId);
+                        
+                        if (typeof YT === 'undefined' || !YT.Player) {
+                            console.error('YouTube API not available');
+                            return;
+                        }
+
+                        if (attendeeId !== null && typeof initYouTubePlayer === 'function') {
+                            // Sử dụng hàm từ videoProgress.js với tracking
+                            console.log('Using initYouTubePlayer with tracking');
+                            // Đảm bảo videoDbId được set trước khi gọi initYouTubePlayer
+                            initYouTubePlayer(youtubeVideoId, 'player', attendeeId, initialViewDuration);
+                            // Set lại videoDbId sau khi initYouTubePlayer (vì nó có thể override)
+                            setTimeout(function() {
+                                videoProgress.videoId = videoDbId;
+                            }, 100);
+                        } else {
+                            // Khởi tạo player không có tracking nếu chưa đăng nhập hoặc function không tồn tại
+                            console.log('Creating player without tracking');
+                            try {
+                                videoProgress.player = new YT.Player('player', {
+                                    videoId: youtubeVideoId,
+                                    playerVars: {
+                                        'autoplay': 0,
+                                        'controls': 1,
+                                        'rel': 0,
+                                        'fs': 1,
+                                        'cc_load_policy': 1,
+                                        'hl': 'vi'
+                                    },
+                                    events: {
+                                        'onReady': function(event) {
+                                            console.log('Player ready without tracking');
+                                            videoProgress.duration = event.target.getDuration();
+                                            videoProgress.videoId = videoDbId;
+                                        }
+                                    }
+                                });
+                            } catch (e) {
+                                console.error('Error creating YouTube player:', e);
+                            }
+                        }
+                    }
+
+                    // Xử lý khi YouTube API sẵn sàng
+                    var existingOnReady = window.onYouTubeIframeAPIReady;
+                    window.onYouTubeIframeAPIReady = function() {
+                        console.log('YouTube API ready');
+                        // Gọi hàm cũ nếu có (từ videoProgress.js)
+                        if (existingOnReady && typeof existingOnReady === 'function') {
+                            existingOnReady();
+                        }
+                        // Khởi tạo player
+                        initializeVideoPlayer();
+                    };
+
+                    // Load YouTube IFrame API nếu chưa có
+                    if (typeof YT === 'undefined') {
+                        console.log('Loading YouTube IFrame API');
+                        var tag = document.createElement('script');
+                        tag.src = "https://www.youtube.com/iframe_api";
+                        tag.onerror = function() {
+                            console.error('Failed to load YouTube IFrame API');
+                            // Fallback: hiển thị thông báo lỗi
+                            var playerDiv = document.getElementById('player');
+                            if (playerDiv) {
+                                playerDiv.innerHTML = '<div class="alert alert-warning m-3">Không thể tải YouTube Player. Vui lòng kiểm tra kết nối mạng.</div>';
+                            }
+                        };
+                        var firstScriptTag = document.getElementsByTagName('script')[0];
+                        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+                    } else if (typeof YT !== 'undefined' && YT.Player) {
+                        // API đã sẵn sàng, khởi tạo ngay
+                        console.log('YouTube API already loaded, initializing immediately');
+                        setTimeout(initializeVideoPlayer, 100);
+                    }
+                    
+                    // Timeout để đảm bảo player được khởi tạo
+                    setTimeout(function() {
+                        if (!videoProgress.player && typeof YT !== 'undefined' && YT.Player) {
+                            console.log('Retrying player initialization after timeout');
+                            initializeVideoPlayer();
+                        }
+                    }, 2000);
+                </script>
+            }
+            else if (!string.IsNullOrEmpty(Model.Url))
+            {
+                @* Thêm CSRF token cho các video không phải YouTube *@
+                @Html.AntiForgeryToken()
+                
+                @* Hiển thị video dưới dạng iframe cho các URL khác YouTube *@
+                <div class="ratio ratio-16x9 mb-3 video-embed-wrapper">
+                    @if (isEmbedUrl || Model.Url.Contains("embed") || Model.Url.Contains("iframe"))
+                    {
+                        <iframe src="@Model.Url" frameborder="0" allowfullscreen style="width:100%;height:100%;"></iframe>
+                    }
+                    else
+                    {
+                        @* Thử chuyển đổi thành embed URL nếu có thể *@
+                        <iframe src="@Model.Url" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="width:100%;height:100%;"></iframe>
+                    }
+                </div>
+            }
+            else
+            {
+                @* Thêm CSRF token cho trường hợp không có video *@
+                @Html.AntiForgeryToken()
+                
+                <div class="ratio ratio-16x9 mb-3 video-embed-wrapper">
+                    <div class="d-flex align-items-center justify-content-center text-muted">
+                        <div class="text-center">
+                            <i class="fas fa-video fa-3x mb-3"></i>
+                            @if (string.IsNullOrEmpty(Model.Url))
+                            {
+                                <p class="text-warning"><strong>Video chưa có URL</strong></p>
+                                <p class="text-muted">Vui lòng liên hệ quản trị viên để thêm URL video.</p>
+                            }
+                            else
+                            {
+                                <p class="text-warning"><strong>URL video không hợp lệ hoặc không được hỗ trợ</strong></p>
+                                <p class="text-muted small">URL hiện tại: <code>@(Model.Url.Length > 100 ? Model.Url.Substring(0, 100) + "..." : Model.Url)</code></p>
+                                <p class="text-muted small mt-2">Hệ thống hỗ trợ: YouTube URLs (youtube.com, youtu.be), embed URLs, hoặc iframe URLs.</p>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.LocalFilePath))
+                            {
+                                <p class="text-info mt-2">
+                                    <i class="fas fa-info-circle"></i> Video được lưu tại: @Model.LocalFilePath
+                                </p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="col-lg-4 col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h4 class="card-title">@Model.Title</h4>
+                    <p class="text-muted mb-2">
+                        📅 Sự kiện: <strong>@Model.Event?.Title</strong><br />
+                        🕒 Ngày đăng: <strong>@Model.UploadDate.ToString("dd/MM/yyyy HH:mm")</strong><br />
+                        ⏱ Thời lượng: <strong>@(Model.Duration / 60):@(Model.Duration % 60)</strong>
+                    </p>
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <p class="card-text">@Model.Description</p>
+                    }
+
+                    @* Thanh tiến độ xem video - Luôn hiển thị *@
+                    @if (ViewBag.AttendeeId != null)
+                    {
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0"><i class="fas fa-chart-line"></i> Tiến độ xem:</h6>
+                                <span class="badge bg-primary" id="progressPercentage">@(ViewBag.InitialViewPercentage?.ToString("F1") ?? "0")%</span>
+                            </div>
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                     role="progressbar" 
+                                     id="progressBar"
+                                     style="width: @(ViewBag.InitialViewPercentage ?? 0)%"
+                                     aria-valuenow="@(ViewBag.InitialViewPercentage ?? 0)" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                    <span id="progressText">@(ViewBag.InitialViewPercentage?.ToString("F1") ?? "0")%</span>
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mt-1">
+                                Đã xem: <span id="watchedTime">@(ViewBag.InitialViewDuration ?? 0)</span> giây / @Model.Duration giây
+                            </small>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0"><i class="fas fa-chart-line"></i> Tiến độ xem:</h6>
+                                <span class="badge bg-secondary">0%</span>
+                            </div>
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar" 
+                                     role="progressbar" 
+                                     style="width: 0%"
+                                     aria-valuenow="0" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                    <span>0%</span>
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mt-1">
+                                Vui lòng đăng nhập để theo dõi tiến độ
+                            </small>
+                        </div>
+                    }
+
+                    @* Luôn hiển thị tóm tắt *@
+                    <div class="shadow rounded-4 transcript-section p-4 mb-3 summary-section" id="mainSummary">
+                        <h6 class="alert-heading mb-2"><i class="fas fa-file-alt"></i> Tóm tắt nội dung:</h6>
+                        <p class="mb-0" id="summaryText">
+                            @if (!string.IsNullOrEmpty(Model.Summary))
+                            {
+                                @Model.Summary
+                            }
+                            else
+                            {
+                                <span class="text-muted">Chưa có tóm tắt, hãy bấm nút để tạo tóm tắt tự động!</span>
+                            }
+                        </p>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button id="generateSummaryBtn" class="btn btn-primary" onclick="generateSummary(@Model.Id)">
+                            <i class="fas fa-magic"></i> Tạo tóm tắt tự động
+                        </button>
+                    @if (!string.IsNullOrEmpty(Model.Transcript))
+                    {
+                        <button class="btn btn-outline-primary" type="button" onclick="scrollToTranscript()">
+                            <i class="fas fa-closed-captioning"></i> Xem phụ đề
+                        </button>
+                        <button class="btn btn-outline-info mt-2" type="button" data-bs-toggle="collapse" data-bs-target="#translateSection" aria-expanded="false">
+                            <i class="fas fa-language"></i> Dịch phụ đề
+                        </button>
+                    }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Phụ đề toàn bộ video, full width -->
+    @if (!string.IsNullOrEmpty(Model.Transcript))
+    {
+        <div class="row mt-4">
+            <div class="col-12">
+                <!-- Phần dịch phụ đề -->
+                <div class="collapse mb-3" id="translateSection">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h6 class="card-title mb-3"><i class="fas fa-language"></i> Dịch phụ đề sang ngôn ngữ khác</h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Chọn ngôn ngữ đích:</label>
+                                    <select id="targetLanguageSelect" class="form-select">
+                                        <option value="">-- Chọn ngôn ngữ --</option>
+                                        <option value="en">English (Tiếng Anh)</option>
+                                        <option value="vi">Tiếng Việt</option>
+                                        <option value="fr">Français (Tiếng Pháp)</option>
+                                        <option value="de">Deutsch (Tiếng Đức)</option>
+                                        <option value="es">Español (Tiếng Tây Ban Nha)</option>
+                                        <option value="ja">日本語 (Tiếng Nhật)</option>
+                                        <option value="ko">한국어 (Tiếng Hàn)</option>
+                                        <option value="zh">中文 (Tiếng Trung)</option>
+                                        <option value="it">Italiano (Tiếng Ý)</option>
+                                        <option value="pt">Português (Tiếng Bồ Đào Nha)</option>
+                                        <option value="ru">Русский (Tiếng Nga)</option>
+                                        <option value="ar">العربية (Tiếng Ả Rập)</option>
+                                        <option value="th">ไทย (Tiếng Thái)</option>
+                                        <option value="hi">हिन्दी (Tiếng Hindi)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-8 d-flex align-items-end">
+                                    <button id="translateBtn" class="btn btn-primary" onclick="translateSubtitle(@Model.Id)">
+                                        <i class="fas fa-sync-alt"></i> Dịch phụ đề
+                                    </button>
+                                    <button id="loadTranslationsBtn" class="btn btn-outline-secondary ms-2" onclick="loadExistingTranslations(@Model.Id)">
+                                        <i class="fas fa-list"></i> Xem bản dịch đã lưu
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="translateStatus" class="mt-3" style="display: none;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phụ đề gốc -->
+                <div id="transcriptSection" class="shadow rounded-4 transcript-section p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">
+                            <span id="transcriptTitle">Phụ đề toàn bộ video</span>
+                            <span id="currentLanguage" class="badge bg-secondary ms-2" style="display: none;"></span>
+                        </h5>
+                        <div>
+                            <button id="switchToOriginalBtn" class="btn btn-sm btn-outline-primary me-2" onclick="showOriginalTranscript()" style="display: none;">
+                                <i class="fas fa-undo"></i> Về bản gốc
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="copyTranscript()">
+                                <i class="fas fa-copy"></i> Sao chép
+                            </button>
+                        </div>
+                    </div>
+                    <div class="transcript-content" style="max-height: 350px; overflow-y: auto;">
+                        <p class="mb-0" id="transcriptText">@Model.Transcript</p>
+                    </div>
+                </div>
+
+                <!-- Danh sách bản dịch đã lưu -->
+                <div id="translationsList" class="mt-3" style="display: none;">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h6 class="card-title mb-3"><i class="fas fa-list"></i> Các bản dịch đã lưu</h6>
+                            <div id="translationsListContent"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script src="~/js/videoProgress.js"></script>
+    <script>
+        function generateSummary(videoId) {
+            const btn = document.getElementById('generateSummaryBtn');
+            const summaryText = document.getElementById('summaryText');
+            if (!btn || !summaryText) {
+                console.error('Generate summary button or text element not found');
+                return;
+            }
+            
+            btn.disabled = true;
+            summaryText.innerHTML = `<span class='text-muted'><i class='fas fa-spinner fa-spin'></i> Đang tạo tóm tắt...</span>`;
+            
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (!token) {
+                summaryText.innerHTML = `<span class='text-danger'><i class='fas fa-exclamation-circle'></i> Lỗi: Không tìm thấy token xác thực</span>`;
+                btn.disabled = false;
+                return;
+            }
+
+            fetch('/Video/GenerateSummary/' + videoId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token.value
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.message || `HTTP error! status: ${response.status}`);
+                    }).catch(() => {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success && data.summary) {
+                    summaryText.innerHTML = data.summary;
+                } else if (data.success && !data.summary) {
+                    summaryText.innerHTML = "<span class='text-muted'>Không có nội dung tóm tắt.</span>";
+                } else {
+                    summaryText.innerHTML = `<span class='text-danger'><i class='fas fa-exclamation-circle'></i> ${data.message || 'Không thể tạo tóm tắt'}</span>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error generating summary:', error);
+                summaryText.innerHTML = `<span class='text-danger'><i class='fas fa-exclamation-circle'></i> Đã xảy ra lỗi khi tạo tóm tắt: ${error.message}</span>`;
+            })
+            .finally(() => {
+                btn.disabled = false;
+            });
+        }
+
+        function copyTranscript() {
+            const transcript = document.querySelector('.transcript-content p').innerText;
+            navigator.clipboard.writeText(transcript).then(() => {
+                // Hiển thị thông báo thành công
+                const btn = document.querySelector('.btn-outline-secondary');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> Đã sao chép!';
+                btn.classList.remove('btn-outline-secondary');
+                btn.classList.add('btn-success');
+
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-outline-secondary');
+                }, 2000);
+            });
+        }
+
+        function scrollToTranscript() {
+            var el = document.getElementById('transcriptSection');
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        var originalTranscript = @Html.Raw(Json.Serialize(Model.Transcript ?? ""));
+
+        function translateSubtitle(videoId) {
+            const targetLang = document.getElementById('targetLanguageSelect').value;
+            if (!targetLang) {
+                alert('Vui lòng chọn ngôn ngữ đích');
+                return;
+            }
+
+            const btn = document.getElementById('translateBtn');
+            const statusDiv = document.getElementById('translateStatus');
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+
+            if (!token) {
+                statusDiv.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> Lỗi: Không tìm thấy token xác thực</div>';
+                statusDiv.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true;
+            statusDiv.innerHTML = '<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Đang dịch phụ đề, vui lòng đợi...</div>';
+            statusDiv.style.display = 'block';
+
+            fetch('/Video/TranslateSubtitle/' + videoId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token.value
+                },
+                body: JSON.stringify({ targetLanguage: targetLang })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.translatedText) {
+                    // Hiển thị bản dịch
+                    document.getElementById('transcriptText').innerText = data.translatedText;
+                    document.getElementById('transcriptTitle').textContent = 'Phụ đề đã dịch';
+                    document.getElementById('currentLanguage').textContent = getLanguageName(data.language);
+                    document.getElementById('currentLanguage').style.display = 'inline';
+                    document.getElementById('switchToOriginalBtn').style.display = 'inline-block';
+
+                    statusDiv.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle"></i> Dịch thành công' + 
+                        (data.cached ? ' (từ bản lưu)' : '') + '</div>';
+                    
+                    // Cuộn đến phần transcript
+                    scrollToTranscript();
+                } else {
+                    statusDiv.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> ' + 
+                        (data.message || 'Không thể dịch phụ đề') + '</div>';
+                }
+            })
+            .catch(error => {
+                console.error('Error translating subtitle:', error);
+                statusDiv.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> Đã xảy ra lỗi: ' + error.message + '</div>';
+            })
+            .finally(() => {
+                btn.disabled = false;
+            });
+        }
+
+        function showOriginalTranscript() {
+            document.getElementById('transcriptText').innerText = originalTranscript;
+            document.getElementById('transcriptTitle').textContent = 'Phụ đề toàn bộ video';
+            document.getElementById('currentLanguage').style.display = 'none';
+            document.getElementById('switchToOriginalBtn').style.display = 'none';
+        }
+
+        function loadExistingTranslations(videoId) {
+            const statusDiv = document.getElementById('translateStatus');
+            const listDiv = document.getElementById('translationsList');
+            const listContent = document.getElementById('translationsListContent');
+
+            statusDiv.innerHTML = '<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Đang tải danh sách bản dịch...</div>';
+            statusDiv.style.display = 'block';
+
+            fetch('/Video/GetTranslations/' + videoId)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.translations && data.translations.length > 0) {
+                    let html = '<div class="list-group">';
+                    data.translations.forEach(function(trans) {
+                        var escapedText = trans.translatedText.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+                        html += '<div class="list-group-item">';
+                        html += '<div class="d-flex justify-content-between align-items-start">';
+                        html += '<div class="flex-grow-1">';
+                        html += '<h6 class="mb-1">' + escapeHtml(getLanguageName(trans.language)) + '</h6>';
+                        html += '<p class="mb-1 small text-muted">Ngày tạo: ' + new Date(trans.createdAt).toLocaleString('vi-VN') + '</p>';
+                        html += '</div>';
+                        html += '<button class="btn btn-sm btn-outline-primary" onclick="loadTranslation(\'' + 
+                            escapeHtml(trans.language) + '\', \'' + escapedText + '\')">';
+                        html += '<i class="fas fa-eye"></i> Xem</button>';
+                        html += '</div>';
+                        html += '</div>';
+                    });
+                    html += '</div>';
+                    listContent.innerHTML = html;
+                    listDiv.style.display = 'block';
+                    statusDiv.style.display = 'none';
+                } else {
+                    statusDiv.innerHTML = '<div class="alert alert-warning"><i class="fas fa-info-circle"></i> Chưa có bản dịch nào được lưu</div>';
+                    listDiv.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading translations:', error);
+                statusDiv.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> Đã xảy ra lỗi khi tải danh sách bản dịch</div>';
+            });
+        }
+
+        function loadTranslation(language, translatedText) {
+            // Decode escaped text
+            var decodedText = translatedText
+                .replace(/\\n/g, '\n')
+                .replace(/\\r/g, '\r')
+                .replace(/\\'/g, "'")
+                .replace(/\\"/g, '"')
+                .replace(/\\\\/g, '\\');
+            
+            document.getElementById('transcriptText').innerText = decodedText;
+            document.getElementById('transcriptTitle').textContent = 'Phụ đề đã dịch';
+            document.getElementById('currentLanguage').textContent = getLanguageName(language);
+            document.getElementById('currentLanguage').style.display = 'inline';
+            document.getElementById('switchToOriginalBtn').style.display = 'inline-block';
+            scrollToTranscript();
+        }
+
+        function getLanguageName(code) {
+            const languages = {
+                'en': 'English',
+                'vi': 'Tiếng Việt',
+                'fr': 'Français',
+                'de': 'Deutsch',
+                'es': 'Español',
+                'ja': '日本語',
+                'ko': '한국어',
+                'zh': '中文',
+                'it': 'Italiano',
+                'pt': 'Português',
+                'ru': 'Русский',
+                'ar': 'العربية',
+                'th': 'ไทย',
+                'hi': 'हिन्दी'
+            };
+            return languages[code] || code;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            var map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+    </script>
+}
+
+<style>
+    .transcript-section {
+        background: #f8f9fa;
+        border-radius: 1rem;
+    }
+
+    .transcript-content {
+        font-size: 0.97rem;
+        line-height: 1.6;
+        padding: 10px;
+        background-color: #fff;
+        border-radius: 0.5rem;
+        border: 1px solid #e0e0e0;
+    }
+
+    .video-embed-wrapper {
+        position: relative;
+        min-height: 300px;
+        background: #e9ecef;
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .alert {
+        border: none;
+        border-radius: 0.5rem;
+    }
+
+    .alert-info {
+        background-color: #e8f4fd;
+        color: #0c5460;
+    }
+
+    .btn-primary {
+        transition: all 0.3s ease;
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,123,255,0.15);
+        }
+
+    .spinner-border {
+        width: 1rem;
+        height: 1rem;
+    }
+
+    .btn-outline-secondary {
+        transition: all 0.2s ease;
+    }
+
+        .btn-outline-secondary:hover {
+            transform: translateY(-1px);
+        }
+
+    .btn-success {
+        transition: all 0.2s ease;
+    }
+
+    /* Progress bar styling */
+    #progressBar {
+        transition: width 0.3s ease;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .progress {
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        border-radius: 0.5rem;
+    }
+
+    .progress-bar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+</style>

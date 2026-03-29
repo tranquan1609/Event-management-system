@@ -1,0 +1,192 @@
+@model DACSWEBSK.Models.EventAssignment
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Quản lý bài nộp";
+}
+
+<style>
+    .assignment-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+    }
+
+    .assignment-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        padding: 2rem;
+    }
+
+    .submission-card {
+        border: 1px solid rgba(31, 38, 135, 0.1);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .submission-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .grade-form {
+        background: #f8fafc;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+</style>
+
+<div class="assignment-header">
+    <div class="container">
+        <h1 class="display-6 mb-0">
+            <i class="fas fa-list me-2"></i>
+            Quản lý bài nộp - @Model.Title
+        </h1>
+    </div>
+</div>
+
+<div class="container">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="assignment-container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4>Sự kiện: @Model.Event?.Title</h4>
+                <p class="text-muted mb-0">Tổng số bài nộp: <span class="badge bg-primary">@Model.Submissions.Count</span></p>
+            </div>
+            <div>
+                <a asp-action="ExportReport" asp-route-id="@Model.Id" class="btn btn-success">
+                    <i class="fas fa-download me-2"></i>Xuất báo cáo CSV
+                </a>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Quay lại
+                </a>
+            </div>
+        </div>
+
+        @if (Model.Submissions.Any())
+        {
+            @foreach (var submission in Model.Submissions.OrderByDescending(s => s.SubmittedAt))
+            {
+                <div class="submission-card">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h5 class="mb-1">
+                                <i class="fas fa-user me-2"></i>@submission.Attendee?.FullName
+                            </h5>
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-envelope me-2"></i>@submission.Attendee?.Email
+                            </p>
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-2"></i>Nộp lúc: @submission.SubmittedAt.ToString("g")
+                            </small>
+                        </div>
+                        <div>
+                            <span class="badge @(submission.Status == "Graded" ? "bg-success" : "bg-warning")">
+                                @submission.Status
+                            </span>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(submission.TextContent))
+                    {
+                        <div class="mb-3">
+                            <strong><i class="fas fa-file-alt me-2"></i>Nội dung văn bản:</strong>
+                            <div class="mt-2 p-3 bg-light rounded">
+                                @Html.Raw(submission.TextContent.Replace("\n", "<br />"))
+                            </div>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(submission.FilePath))
+                    {
+                        <div class="mb-3">
+                            <strong><i class="fas fa-file me-2"></i>File đã nộp:</strong>
+                            <div class="mt-2">
+                                <a asp-action="DownloadFile" asp-route-id="@submission.Id" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-download me-2"></i>@submission.FileName
+                                </a>
+                            </div>
+                        </div>
+                    }
+
+                    @if (submission.Score.HasValue)
+                    {
+                        <div class="mb-3">
+                            <strong><i class="fas fa-star me-2"></i>Điểm số:</strong>
+                            <span class="badge bg-success fs-6">@submission.Score.Value / @(Model.MaxScore ?? 100)</span>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(submission.Feedback))
+                    {
+                        <div class="mb-3">
+                            <strong><i class="fas fa-comment me-2"></i>Nhận xét:</strong>
+                            <div class="mt-2 p-3 bg-light rounded">
+                                @Html.Raw(submission.Feedback.Replace("\n", "<br />"))
+                            </div>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(submission.GradedBy))
+                    {
+                        <small class="text-muted">
+                            <i class="fas fa-user-check me-2"></i>
+                            Chấm bởi: @submission.GradedBy 
+                            @if (submission.GradedAt.HasValue)
+                            {
+                                <span>lúc @submission.GradedAt.Value.ToString("g")</span>
+                            }
+                        </small>
+                    }
+
+                    <div class="grade-form">
+                        <form asp-action="GradeSubmission" method="post" class="row g-3">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="submissionId" value="@submission.Id" />
+                            
+                            <div class="col-md-3">
+                                <label class="form-label">Điểm số</label>
+                                <input type="number" name="score" class="form-control" 
+                                       min="0" max="@(Model.MaxScore ?? 1000)" 
+                                       step="0.1" 
+                                       value="@submission.Score" 
+                                       placeholder="Nhập điểm..." />
+                            </div>
+                            
+                            <div class="col-md-7">
+                                <label class="form-label">Nhận xét</label>
+                                <textarea name="feedback" class="form-control" rows="2" 
+                                          placeholder="Nhập nhận xét...">@submission.Feedback</textarea>
+                            </div>
+                            
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-check me-2"></i>Chấm điểm
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="text-center text-muted py-5">
+                <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                <p>Chưa có bài nộp nào</p>
+            </div>
+        }
+    </div>
+</div>
+

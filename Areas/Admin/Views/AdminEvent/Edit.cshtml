@@ -1,0 +1,188 @@
+﻿@model DACSWEBSK.Models.Event
+@{
+    ViewData["Title"] = "Chỉnh sửa sự kiện";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-lg p-5 rounded-4" style="background: linear-gradient(to right, #e0f7fa, #ffffff);">
+        <h2 class="text-center mb-5" style="color: #0077b6;">✏️ Chỉnh sửa sự kiện</h2>
+
+        <form asp-action="Edit" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+
+            <div class="mb-4">
+                <label asp-for="Title" class="form-label fw-bold">📝 Tiêu đề sự kiện</label>
+                <input asp-for="Title" class="form-control rounded-pill shadow-sm" placeholder="Nhập tiêu đề..." />
+                <span asp-validation-for="Title" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Description" class="form-label fw-bold">📄 Mô tả</label>
+                <textarea asp-for="Description" class="form-control rounded-3 shadow-sm" rows="4" placeholder="Nhập mô tả..."></textarea>
+                <span asp-validation-for="Description" class="text-danger small"></span>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label asp-for="StartTime" class="form-label fw-bold">⏰ Bắt đầu</label>
+                    <input asp-for="StartTime" type="datetime-local" class="form-control rounded-pill shadow-sm" id="StartTime" />
+                    <span asp-validation-for="StartTime" class="text-danger small"></span>
+                    <small class="text-muted d-block mt-1">Không thể chọn thời gian trong quá khứ</small>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="EndTime" class="form-label fw-bold">🕔 Kết thúc</label>
+                    <input asp-for="EndTime" type="datetime-local" class="form-control rounded-pill shadow-sm" id="EndTime" />
+                    <span asp-validation-for="EndTime" class="text-danger small"></span>
+                    <small class="text-muted d-block mt-1">Phải sau thời gian bắt đầu</small>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="LocationId" class="form-label fw-bold">📍 Địa điểm</label>
+                <select asp-for="LocationId" class="form-select rounded-pill shadow-sm" asp-items="ViewBag.Locations">
+                    <option value="">-- Chọn địa điểm --</option>
+                </select>
+                <span asp-validation-for="LocationId" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold">🖼️ Hình ảnh sự kiện</label>
+                <div class="input-group">
+                    <input type="file" name="imageFile" class="form-control rounded-pill shadow-sm" accept="image/*" onchange="previewImage(event)" />
+                </div>
+                <div id="imagePreview" class="mt-2 text-center">
+                    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                    {
+                        <img src="@Model.ImageUrl" alt="Preview" style="max-width: 300px; max-height: 200px;" class="img-thumbnail" />
+                    }
+                    <img id="preview" src="#" alt="Preview" style="max-width: 300px; max-height: 200px; display: none;" class="img-thumbnail" />
+                </div>
+                <span asp-validation-for="ImageUrl" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Status" class="form-label fw-bold">📌 Trạng thái</label>
+                <input type="hidden" asp-for="Status" />
+                @{
+                    string statusText = Model.Status switch
+                    {
+                        "Upcoming" => "Sắp diễn ra",
+                        "Ongoing" => "Đang diễn ra",
+                        "Completed" => "Đã kết thúc",
+                        "Cancelled" => "Đã hủy",
+                        _ => "Sắp diễn ra"
+                    };
+                }
+                <input type="text" class="form-control rounded-pill shadow-sm" value="@statusText" readonly style="background-color: #f8f9fa; cursor: not-allowed;" />
+                <small class="text-muted d-block mt-1">Trạng thái sẽ tự động cập nhật dựa trên thời gian sự kiện</small>
+                <span asp-validation-for="Status" class="text-danger small"></span>
+            </div>
+
+            <div class="d-flex justify-content-center gap-4 mt-5">
+                <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4 py-2">🔙 Quay lại</a>
+                <button type="submit" class="btn btn-primary rounded-pill px-4 py-2" style="background-color: #f39c12; border-color: #f39c12;">💾 Lưu thay đổi</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function previewImage(event) {
+        var reader = new FileReader();
+        reader.onload = function() {
+            var preview = document.getElementById('preview');
+            preview.src = reader.result;
+            preview.style.display = 'block';
+            document.querySelector('img[src="@Model.ImageUrl"]')?.remove();
+        }
+        reader.readAsDataURL(event.target.files[0]);
+    }
+
+    // Thiết lập validation cho datetime-local inputs
+    document.addEventListener('DOMContentLoaded', function() {
+        // Lấy thời gian hiện tại và format thành datetime-local format (YYYY-MM-DDTHH:mm)
+        var now = new Date();
+        now.setMinutes(now.getMinutes() - 1);
+        var minDateTime = now.toISOString().slice(0, 16);
+        
+        var startTimeInput = document.getElementById('StartTime');
+        var endTimeInput = document.getElementById('EndTime');
+        
+        // Lưu giá trị ban đầu để so sánh
+        var originalStartTime = startTimeInput ? new Date(startTimeInput.value) : null;
+        var originalEndTime = endTimeInput ? new Date(endTimeInput.value) : null;
+        
+        // Set min cho cả hai input
+        // Nếu thời gian hiện tại của sự kiện đã qua, vẫn cho phép giữ nguyên nhưng không cho chọn mới trong quá khứ
+        if (startTimeInput) {
+            if (originalStartTime && originalStartTime < now) {
+                // Cho phép giữ nguyên giá trị cũ nhưng không cho chọn mới
+                startTimeInput.setAttribute('min', startTimeInput.value);
+            } else {
+                startTimeInput.setAttribute('min', minDateTime);
+            }
+        }
+        if (endTimeInput) {
+            if (originalEndTime && originalEndTime < now) {
+                endTimeInput.setAttribute('min', endTimeInput.value);
+            } else {
+                endTimeInput.setAttribute('min', minDateTime);
+            }
+        }
+
+        // Khi StartTime thay đổi, cập nhật min của EndTime
+        if (startTimeInput && endTimeInput) {
+            startTimeInput.addEventListener('change', function() {
+                var startTime = new Date(this.value);
+                if (startTime && !isNaN(startTime.getTime())) {
+                    // EndTime phải sau StartTime ít nhất 1 phút
+                    var minEndTime = new Date(startTime);
+                    minEndTime.setMinutes(minEndTime.getMinutes() + 1);
+                    endTimeInput.setAttribute('min', minEndTime.toISOString().slice(0, 16));
+                    
+                    // Nếu EndTime hiện tại nhỏ hơn StartTime, reset EndTime
+                    var currentEndTime = new Date(endTimeInput.value);
+                    if (endTimeInput.value && currentEndTime <= startTime) {
+                        endTimeInput.value = minEndTime.toISOString().slice(0, 16);
+                    }
+                }
+            });
+
+            // Validate khi submit form
+            document.querySelector('form').addEventListener('submit', function(e) {
+                var startTime = new Date(startTimeInput.value);
+                var endTime = new Date(endTimeInput.value);
+                var now = new Date();
+
+                // Kiểm tra StartTime không được trong quá khứ (trừ khi đang chỉnh sửa sự kiện cũ)
+                if (originalStartTime && startTime < now && startTime < originalStartTime) {
+                    e.preventDefault();
+                    alert('Thời gian bắt đầu không được trong quá khứ!');
+                    startTimeInput.focus();
+                    return false;
+                }
+
+                // Kiểm tra EndTime phải sau StartTime
+                if (endTime <= startTime) {
+                    e.preventDefault();
+                    alert('Thời gian kết thúc phải sau thời gian bắt đầu!');
+                    endTimeInput.focus();
+                    return false;
+                }
+
+                // Kiểm tra EndTime không được trong quá khứ (trừ khi đang chỉnh sửa sự kiện cũ)
+                if (originalEndTime && endTime < now && endTime < originalEndTime) {
+                    e.preventDefault();
+                    alert('Thời gian kết thúc không được trong quá khứ!');
+                    endTimeInput.focus();
+                    return false;
+                }
+            });
+        }
+    });
+</script>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

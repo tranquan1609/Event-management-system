@@ -1,0 +1,76 @@
+﻿@model IEnumerable<DACSWEBSK.Models.Video>
+@{
+    var events = ViewBag.Events as List<DACSWEBSK.Models.Event>;
+    var currentEventId = ViewBag.CurrentEventId as int?;
+    ViewData["Title"] = "Quản lý video/livestream";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-lg p-4 rounded-4" style="background: linear-gradient(to right, #e0f7fa, #ffffff);">
+        <h2 class="text-center mb-4" style="color: #0077b6;">📹 @ViewData["Title"]</h2>
+
+        <form method="get" class="mb-3">
+            <label>🔍 Lọc theo sự kiện:</label>
+            <select name="eventId" onchange="this.form.submit()" class="form-select d-inline-block w-auto">
+                <option value="">Tất cả sự kiện</option>
+                @foreach (var evt in events)
+                {
+                    <option value="@evt.Id" selected="@(currentEventId == evt.Id ? "selected" : null)">
+                        @evt.Title
+                    </option>
+                }
+            </select>
+        </form>
+
+        <p>
+            @if (currentEventId != null)
+            {
+                <a asp-action="Create" asp-route-eventId="@currentEventId" class="btn btn-primary rounded-pill mb-3">➕ Thêm video/livestream</a>
+            }
+        </p>
+
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>📝 Tiêu đề</th>
+                    <th>🔗 Link</th>
+                    <th>📅 Sự kiện</th>
+                    <th>📄 Phụ đề</th>
+                    <th class="text-end">⚙️ Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var video in Model)
+                {
+                    <tr>
+                        <td>@video.Title</td>
+                        <td>
+                            <a href="@video.Url" target="_blank" class="text-decoration-none">@video.Url</a>
+                        </td>
+                        <td>@video.Event?.Title</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(video.Transcript))
+                            {
+                                <span class="badge bg-success">✓ Đã có</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">✗ Chưa có</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <a asp-action="Edit" asp-route-id="@video.Id" class="btn btn-sm btn-warning me-1 rounded-pill">✏️</a>
+                            <a asp-action="Delete" asp-route-id="@video.Id" class="btn btn-sm btn-danger rounded-pill">🗑️</a>
+                            @if (string.IsNullOrEmpty(video.Transcript))
+                            {
+                                <form asp-action="RetryTranscript" asp-route-id="@video.Id" method="post" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-info rounded-pill ms-1">🔄 Lấy lại phụ đề</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

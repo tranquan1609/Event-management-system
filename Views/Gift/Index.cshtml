@@ -1,0 +1,47 @@
+﻿@model IEnumerable<DACSWEBSK.Models.Gift>
+@{
+    ViewData["Title"] = "Đổi quà";
+}
+
+<div class="container mt-5">
+    <h1 class="text-center text-primary mb-4">🎁 Đổi quà</h1>
+
+    @if (User.Identity.IsAuthenticated)
+    {
+        <div class="alert alert-success shadow-lg rounded-pill">
+            <strong>Điểm hiện tại:</strong> @ViewBag.UserPoints
+        </div>
+    }
+
+    @if (TempData["RedeemMessage"] != null)
+    {
+        <div class="alert alert-info rounded-lg">@TempData["RedeemMessage"]</div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-warning text-center">Hiện chưa có phần quà nào để đổi.</div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var gift in Model)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-lg rounded-4 border-0">
+                        @if (!string.IsNullOrEmpty(gift.ImageUrl))
+                        {
+                            <img src="@gift.ImageUrl" class="card-img-top rounded-top-4" alt="@gift.Name" style="height: 200px; object-fit: cover;">
+                        }
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title text-primary">@gift.Name</h5>
+                            <p class="card-text text-muted">@gift.Description</p>
+                            <p><strong>Điểm cần:</strong> <span class="badge bg-primary">@gift.RequiredPoints</span></p>
+                            <a asp-action="Redeem" asp-route-id="@gift.Id" class="btn btn-success mt-auto rounded-pill">Đổi quà</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

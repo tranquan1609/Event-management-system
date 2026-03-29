@@ -1,0 +1,45 @@
+﻿@model DACSWEBSK.Models.Notification
+@{
+    ViewData["Title"] = "Chỉnh sửa thông báo";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-lg p-5 rounded-4" style="background: linear-gradient(to right, #e0f7fa, #ffffff);">
+        <h2 class="text-center mb-5" style="color: #0077b6;">✏️ @ViewData["Title"]</h2>
+
+        <form asp-action="Edit" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+            <div class="mb-4">
+                <label asp-for="Title" class="form-label fw-bold">📝 Tiêu đề</label>
+                <input asp-for="Title" class="form-control rounded-pill shadow-sm" placeholder="Nhập tiêu đề thông báo..." />
+                <span asp-validation-for="Title" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Content" class="form-label fw-bold">📄 Nội dung</label>
+                <textarea asp-for="Content" class="form-control rounded-4 shadow-sm" rows="4" placeholder="Nhập nội dung thông báo..."></textarea>
+                <span asp-validation-for="Content" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="EventId" class="form-label fw-bold">📌 Liên kết sự kiện (nếu có)</label>
+                <select asp-for="EventId" class="form-select rounded-pill shadow-sm" asp-items="ViewBag.EventId">
+                    <option value="">-- Không liên kết --</option>
+                </select>
+                <span asp-validation-for="EventId" class="text-danger small"></span>
+            </div>
+
+            <div class="d-flex justify-content-center gap-4 mt-5">
+                <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4 py-2">❌ Hủy</a>
+                <button type="submit" class="btn btn-success rounded-pill px-4 py-2">💾 Cập nhật</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

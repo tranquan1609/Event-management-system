@@ -1,0 +1,43 @@
+﻿@model DACSWEBSK.Models.Location
+@{
+    ViewData["Title"] = "Chi tiết địa điểm";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-lg p-5 rounded-4" style="background: linear-gradient(to right, #e0f7fa, #ffffff);">
+        <h2 class="text-center mb-4" style="color: #0077b6;">📍 @ViewData["Title"]</h2>
+
+        <dl class="row">
+            <dt class="col-sm-3">Tên:</dt>
+            <dd class="col-sm-9">@Model.Name</dd>
+
+            <dt class="col-sm-3">Địa chỉ:</dt>
+            <dd class="col-sm-9">@Model.Address</dd>
+
+            <dt class="col-sm-3">Mô tả:</dt>
+            <dd class="col-sm-9">@Model.Description</dd>
+        </dl>
+
+        @if (Model.Events != null && Model.Events.Any())
+        {
+            <h5 class="mt-4">🎉 Sự kiện tại địa điểm này:</h5>
+            <ul class="list-group">
+                @foreach (var evt in Model.Events)
+                {
+                    <li class="list-group-item">
+                        <strong>@evt.Title</strong> (<span class="text-muted">@evt.StartTime:g - @evt.EndTime:g</span>)
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p class="text-muted">Không có sự kiện nào.</p>
+        }
+
+        <div class="d-flex justify-content-between mt-4">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning rounded-pill px-4 py-2">✏️ Sửa</a>
+            <a asp-action="Index" class="btn btn-secondary rounded-pill px-4 py-2">🔙 Quay lại</a>
+        </div>
+    </div>
+</div>

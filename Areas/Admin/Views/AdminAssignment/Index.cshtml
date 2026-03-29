@@ -1,0 +1,237 @@
+@model IEnumerable<DACSWEBSK.Models.EventAssignment>
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Quản lý bài thu hoạch";
+}
+
+<style>
+    .assignment-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+    }
+
+    .assignment-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        padding: 2rem;
+    }
+
+    .btn-add-assignment {
+        background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+        color: white;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-add-assignment:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+        color: white;
+    }
+
+    .assignment-table {
+        border-radius: 15px;
+        overflow: hidden;
+        border: 1px solid rgba(31, 38, 135, 0.1);
+    }
+
+    .assignment-table thead {
+        background: linear-gradient(135deg, #f6f9fc 0%, #f1f4f9 100%);
+    }
+
+    .assignment-table th {
+        font-weight: 600;
+        color: #2d3748;
+        padding: 1rem;
+        border: none;
+    }
+
+    .assignment-table td {
+        padding: 1rem;
+        vertical-align: middle;
+        border-color: rgba(31, 38, 135, 0.1);
+    }
+
+    .assignment-table tbody tr:hover {
+        background-color: rgba(102, 126, 234, 0.05);
+    }
+
+    .btn-action {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        transition: all 0.3s ease;
+        border: none;
+        margin: 0 2px;
+    }
+
+    .btn-action:hover {
+        transform: translateY(-2px);
+    }
+
+    .btn-warning {
+        background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+        color: white;
+    }
+
+    .btn-info {
+        background: linear-gradient(135deg, #0072ff 0%, #00c6ff 100%);
+        color: white;
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #f85032 0%, #e73827 100%);
+        color: white;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+        color: white;
+    }
+
+    .badge {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 500;
+        font-size: 0.85rem;
+    }
+</style>
+
+<div class="assignment-header">
+    <div class="container">
+        <h1 class="display-6 mb-0">
+            <i class="fas fa-file-alt me-2"></i>
+            Quản lý bài thu hoạch
+        </h1>
+    </div>
+</div>
+
+<div class="container">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="assignment-container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="mb-0">Danh sách bài thu hoạch</h4>
+                <small class="text-muted">Lọc theo sự kiện:</small>
+                <form method="get" class="d-inline-block ms-2">
+                    <select name="eventId" class="form-select form-select-sm d-inline-block" style="width: auto;" onchange="this.form.submit()">
+                        <option value="">Tất cả sự kiện</option>
+                        @foreach (var evt in ViewBag.Events as List<DACSWEBSK.Models.Event>)
+                        {
+                            <option value="@evt.Id" selected="@(ViewBag.CurrentEventId != null && ViewBag.CurrentEventId == evt.Id)">@evt.Title</option>
+                        }
+                    </select>
+                </form>
+            </div>
+            <a asp-action="Create" asp-route-eventId="@ViewBag.CurrentEventId" class="btn-add-assignment">
+                <i class="fas fa-plus"></i>
+                Thêm bài thu hoạch
+            </a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table assignment-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Sự kiện</th>
+                        <th>Tiêu đề</th>
+                        <th class="text-center">Hạn nộp</th>
+                        <th class="text-center">Số bài nộp</th>
+                        <th class="text-center">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.Id</td>
+                                <td>@item.Event?.Title</td>
+                                <td>
+                                    <strong>@item.Title</strong>
+                                    @if (!string.IsNullOrEmpty(item.Description))
+                                    {
+                                        <br />
+                                        <small class="text-muted">@(item.Description.Length > 50 ? item.Description.Substring(0, 50) + "..." : item.Description)</small>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    @if (item.DueDate.HasValue)
+                                    {
+                                        <span class="@(item.DueDate.Value < DateTime.Now ? "text-danger" : "")">
+                                            @item.DueDate.Value.ToString("g")
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Không giới hạn</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary">@item.Submissions.Count</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex justify-content-center gap-1">
+                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn-action btn-info" title="Chi tiết">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a asp-action="ManageSubmissions" asp-route-id="@item.Id" class="btn-action btn-success" title="Quản lý bài nộp">
+                                            <i class="fas fa-list"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn-action btn-warning" title="Sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn-action btn-danger" title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-5">
+                                <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                                Chưa có bài thu hoạch nào
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+

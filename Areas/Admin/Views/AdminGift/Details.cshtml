@@ -1,0 +1,41 @@
+﻿@model DACSWEBSK.Models.Gift
+@{
+    ViewData["Title"] = "Chi tiết phần quà";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-lg p-5 rounded-4" style="background: linear-gradient(to right, #e0f7fa, #ffffff);">
+        <h2 class="text-center mb-4" style="color: #0077b6;">📋 @ViewData["Title"]</h2>
+
+        <dl class="row">
+            <dt class="col-sm-3 fw-bold">🏷️ Tên:</dt>
+            <dd class="col-sm-9">@Model.Name</dd>
+
+            <dt class="col-sm-3 fw-bold">📄 Mô tả:</dt>
+            <dd class="col-sm-9">@Model.Description</dd>
+
+            <dt class="col-sm-3 fw-bold">🖼️ Ảnh:</dt>
+            <dd class="col-sm-9">
+                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <img src="@Model.ImageUrl" class="img-thumbnail" style="max-width: 200px;" />
+                }
+                else
+                {
+                    <span>Không có ảnh</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3 fw-bold">⭐ Điểm yêu cầu:</dt>
+            <dd class="col-sm-9">@Model.RequiredPoints</dd>
+
+            <dt class="col-sm-3 fw-bold">🔀 Code ngẫu nhiên:</dt>
+            <dd class="col-sm-9">@(Model.IsRandomCode ? "Có" : "Không")</dd>
+        </dl>
+
+        <div class="d-flex justify-content-center gap-4 mt-4">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning rounded-pill px-4 py-2">✏️ Sửa</a>
+            <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4 py-2">🔙 Quay lại</a>
+        </div>
+    </div>
+</div>

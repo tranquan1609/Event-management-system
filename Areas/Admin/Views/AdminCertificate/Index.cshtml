@@ -1,0 +1,96 @@
+@model IEnumerable<DACSWEBSK.Models.Certificate>
+@{
+    ViewData["Title"] = "Quản lý chứng nhận tham gia sự kiện";
+    var events = ViewBag.Events as List<Event>;
+    var currentEventId = ViewBag.CurrentEventId as int?;
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Quản lý chứng chỉ</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="/Admin">Trang chủ</a></li>
+        <li class="breadcrumb-item active">Quản lý chứng chỉ</li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fas fa-table me-1"></i>
+                    Danh sách chứng chỉ
+                </div>
+                <div class="d-flex gap-2">
+                    <form method="get" class="d-flex gap-2">
+                        <select name="eventId" class="form-select" onchange="this.form.submit()">
+                            <option value="">-- Chọn sự kiện --</option>
+                            @foreach (var evt in events)
+                            {
+                                <option value="@evt.Id" selected="@(evt.Id == currentEventId)">@evt.Title</option>
+                            }
+                        </select>
+                    </form>
+                    @if (currentEventId.HasValue)
+                    {
+                        <form asp-action="GenerateForEvent" method="post">
+                            <input type="hidden" name="eventId" value="@currentEventId" />
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-certificate"></i> Tạo chứng chỉ cho sự kiện
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>Mã chứng chỉ</th>
+                        <th>Người nhận</th>
+                        <th>Email</th>
+                        <th>Sự kiện</th>
+                        <th>Ngày cấp</th>
+                        <th>Trạng thái gửi</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.CertificateNumber</td>
+                            <td>@item.Attendee.FullName</td>
+                            <td>@item.Attendee.Email</td>
+                            <td>@item.Event.Title</td>
+                            <td>@item.IssueDate.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                @if (item.IsEmailSent)
+                                {
+                                    <span class="badge bg-success">Đã gửi</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning">Chưa gửi</span>
+                                }
+                            </td>
+                            <td>
+                                <a href="@item.CertificateUrl" target="_blank" class="btn btn-sm btn-info">
+                                    <i class="fas fa-download"></i> Tải về
+                                </a>
+                                @if (!item.IsEmailSent)
+                                {
+                                    <form asp-action="SendCertificateEmail" method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <button type="submit" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-envelope"></i> Gửi lại
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div> 

@@ -1,0 +1,260 @@
+﻿@model IEnumerable<DACSWEBSK.Models.Event>
+@{
+    ViewData["Title"] = "Danh sách sự kiện";
+
+    string GetEventStatus(DateTime startTime, DateTime endTime)
+    {
+        var now = DateTime.Now;
+        if (now < startTime)
+            return "Upcoming";
+        if (now >= startTime && now <= endTime)
+            return "Ongoing";
+        return "Completed";
+    }
+}
+
+<style>
+    .event-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .event-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    }
+
+    .event-header .container {
+        position: relative;
+        z-index: 1;
+    }
+
+    .event-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        padding: 2rem;
+    }
+
+    .btn-add-event {
+        background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+        color: white;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-add-event:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+        color: white;
+    }
+
+    .event-table {
+        border-radius: 15px;
+        overflow: hidden;
+        border: 1px solid rgba(31, 38, 135, 0.1);
+    }
+
+    .event-table thead {
+        background: linear-gradient(135deg, #f6f9fc 0%, #f1f4f9 100%);
+    }
+
+    .event-table th {
+        font-weight: 600;
+        color: #2d3748;
+        padding: 1rem;
+        border: none;
+    }
+
+    .event-table td {
+        padding: 1rem;
+        vertical-align: middle;
+        border-color: rgba(31, 38, 135, 0.1);
+    }
+
+    .event-table tbody tr {
+        transition: all 0.3s ease;
+    }
+
+    .event-table tbody tr:hover {
+        background-color: rgba(102, 126, 234, 0.05);
+    }
+
+    .badge {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 500;
+        font-size: 0.85rem;
+    }
+
+    .badge.bg-success {
+        background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%) !important;
+    }
+
+    .badge.bg-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    }
+
+    .badge.bg-secondary {
+        background: linear-gradient(135deg, #718096 0%, #4a5568 100%) !important;
+    }
+
+    .badge.bg-danger {
+        background: linear-gradient(135deg, #f85032 0%, #e73827 100%) !important;
+    }
+
+    .btn-action {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        transition: all 0.3s ease;
+        border: none;
+    }
+
+    .btn-action:hover {
+        transform: translateY(-2px);
+    }
+
+    .btn-warning {
+        background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+        color: white;
+    }
+
+    .btn-info {
+        background: linear-gradient(135deg, #0072ff 0%, #00c6ff 100%);
+        color: white;
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #f85032 0%, #e73827 100%);
+        color: white;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+</style>
+
+<div class="event-header">
+    <div class="container">
+        <h1 class="display-6 mb-0">
+            <i class="fas fa-calendar-alt me-2"></i>
+            Quản lý sự kiện
+        </h1>
+    </div>
+</div>
+
+<div class="container">
+    <div class="event-container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0">Danh sách sự kiện</h4>
+            <a asp-action="Create" class="btn-add-event">
+                <i class="fas fa-plus"></i>
+                Thêm sự kiện mới
+            </a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table event-table">
+                <thead>
+                    <tr>
+                        <th class="text-center">
+                            <i class="fas fa-hashtag me-1"></i>ID
+                        </th>
+                        <th>
+                            <i class="fas fa-heading me-1"></i>Tiêu đề
+                        </th>
+                        <th class="text-center">
+                            <i class="fas fa-hourglass-start me-1"></i>Bắt đầu
+                        </th>
+                        <th class="text-center">
+                            <i class="fas fa-hourglass-end me-1"></i>Kết thúc
+                        </th>
+                        <th class="text-center">
+                            <i class="fas fa-info-circle me-1"></i>Trạng thái
+                        </th>
+                        <th class="text-center">
+                            <i class="fas fa-cogs me-1"></i>Thao tác
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var currentStatus = item.Status == "Cancelled" ? "Cancelled" : GetEventStatus(item.StartTime, item.EndTime);
+                        <tr>
+                            <td class="text-center">@item.Id</td>
+                            <td>@item.Title</td>
+                            <td class="text-center">@item.StartTime.ToString("g")</td>
+                            <td class="text-center">@item.EndTime.ToString("g")</td>
+                            <td class="text-center">
+                                @switch (currentStatus)
+                                {
+                                    case "Upcoming":
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-clock me-1"></i>Sắp diễn ra
+                                        </span>
+                                        break;
+                                    case "Ongoing":
+                                        <span class="badge bg-primary">
+                                            <i class="fas fa-play me-1"></i>Đang diễn ra
+                                        </span>
+                                        break;
+                                    case "Completed":
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-check me-1"></i>Đã kết thúc
+                                        </span>
+                                        break;
+                                    case "Cancelled":
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-times me-1"></i>Đã hủy
+                                        </span>
+                                        break;
+                                }
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn-action btn-warning">
+                                        <i class="fas fa-edit"></i>
+                                        Sửa
+                                    </a>
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn-action btn-info">
+                                        <i class="fas fa-info-circle"></i>
+                                        Chi tiết
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn-action btn-danger">
+                                        <i class="fas fa-trash-alt"></i>
+                                        Xóa
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

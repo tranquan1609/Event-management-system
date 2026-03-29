@@ -1,0 +1,88 @@
+﻿@model DACSWEBSK.Models.Event
+@{
+    ViewData["Title"] = "Xóa sự kiện";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-lg p-5 rounded-4" style="background: linear-gradient(to right, #e0f7fa, #ffffff);">
+        <h2 class="text-center mb-5" style="color: #c0392b;">🗑️ Bạn có chắc chắn muốn xóa sự kiện này?</h2>
+
+        <dl class="row fs-5">
+            <dt class="col-sm-3 fw-bold">📝 Tiêu đề sự kiện:</dt>
+            <dd class="col-sm-9">@Model.Title</dd>
+
+            <dt class="col-sm-3 fw-bold">📄 Mô tả:</dt>
+            <dd class="col-sm-9">@Model.Description</dd>
+
+            <dt class="col-sm-3 fw-bold">⏰ Bắt đầu:</dt>
+            <dd class="col-sm-9">@Model.StartTime.ToString("g")</dd>
+
+            <dt class="col-sm-3 fw-bold">🕔 Kết thúc:</dt>
+            <dd class="col-sm-9">@Model.EndTime.ToString("g")</dd>
+
+            <dt class="col-sm-3 fw-bold">📍 Địa điểm:</dt>
+            <dd class="col-sm-9">@Model.Location?.Name</dd>
+
+            <dt class="col-sm-3 fw-bold">🖼️ Hình ảnh:</dt>
+            <dd class="col-sm-9">
+                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <img src="@Model.ImageUrl" alt="Event Image" class="img-fluid rounded shadow-sm" style="max-height: 200px;" />
+                }
+                else
+                {
+                    <em>Không có hình ảnh</em>
+                }
+            </dd>
+
+            <dt class="col-sm-3 fw-bold">📌 Trạng thái:</dt>
+            <dd class="col-sm-9">@Model.Status</dd>
+        </dl>
+
+        @if (ViewBag.AssignmentCount > 0)
+        {
+            <div class="alert alert-warning mt-4" role="alert">
+                <h5 class="alert-heading">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Cảnh báo: Không thể xóa sự kiện này!
+                </h5>
+                <p class="mb-2">
+                    Sự kiện này có <strong>@ViewBag.AssignmentCount bài thu hoạch</strong> đang được liên kết.
+                </p>
+                <p class="mb-2"><strong>Danh sách bài thu hoạch:</strong></p>
+                <ul class="mb-2">
+                    @foreach (var assignmentTitle in ViewBag.Assignments as List<string>)
+                    {
+                        <li>@assignmentTitle</li>
+                    }
+                </ul>
+                <hr>
+                <p class="mb-0">
+                    <strong>Vui lòng xóa tất cả các bài thu hoạch trước khi xóa sự kiện này.</strong>
+                </p>
+                <div class="mt-3">
+                    <a asp-controller="AdminAssignment" asp-action="Index" asp-route-eventId="@Model.Id" class="btn btn-warning">
+                        <i class="fas fa-file-alt me-2"></i>Quản lý bài thu hoạch
+                    </a>
+                </div>
+            </div>
+        }
+
+        <form asp-action="Delete" method="post" class="mt-5">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+
+            <div class="d-flex justify-content-center gap-4">
+                <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4 py-2">❌ Hủy</a>
+                @if (ViewBag.AssignmentCount == 0)
+                {
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 py-2">🗑️ Xóa</button>
+                }
+                else
+                {
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 py-2" disabled title="Không thể xóa vì còn bài thu hoạch">🗑️ Xóa</button>
+                }
+            </div>
+        </form>
+    </div>
+</div>

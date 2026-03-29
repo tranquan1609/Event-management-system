@@ -1,0 +1,100 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using DACSWEBSK.Models
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+<ul class="navbar-nav ms-auto">
+@if (SignInManager.IsSignedIn(User))
+{
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-user-circle me-1"></i> @UserManager.GetUserName(User)
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end animate slideIn" aria-labelledby="userDropdown">
+            <li>
+                <a class="dropdown-item" asp-area="Identity" asp-page="/Account/Manage/Index">
+                    <i class="fas fa-cog me-2"></i> Cài đặt tài khoản
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                    <button type="submit" class="dropdown-item text-danger">
+                        <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </li>
+}
+else
+{
+    <li class="nav-item">
+        <a class="nav-link btn btn-outline-primary me-2" asp-area="Identity" asp-page="/Account/Register">
+            <i class="fas fa-user-plus me-1"></i> Đăng ký
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link btn btn-primary" asp-area="Identity" asp-page="/Account/Login">
+            <i class="fas fa-sign-in-alt me-1"></i> Đăng nhập
+        </a>
+    </li>
+}
+</ul>
+
+<style>
+.dropdown-menu.animate {
+    animation-duration: 0.3s;
+    -webkit-animation-duration: 0.3s;
+    animation-fill-mode: both;
+    -webkit-animation-fill-mode: both;
+}
+
+@@keyframes slideIn {
+    0% {
+        transform: translateY(1rem);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0rem);
+        opacity: 1;
+    }
+    0% {
+        transform: translateY(1rem);
+        opacity: 0;
+    }
+}
+
+.slideIn {
+    -webkit-animation-name: slideIn;
+    animation-name: slideIn;
+}
+
+.dropdown-item {
+    padding: 0.5rem 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.dropdown-item:hover {
+    background-color: #fff5f7;
+    color: #ff4b6e;
+    transform: translateX(5px);
+}
+
+.dropdown-item.text-danger:hover {
+    background-color: #fff5f7;
+    color: #dc3545 !important;
+}
+
+.btn-outline-primary {
+    color: #ff4b6e;
+    border-color: #ff4b6e;
+}
+
+.btn-outline-primary:hover {
+    background-color: #ff4b6e;
+    border-color: #ff4b6e;
+    color: #fff;
+}
+</style>

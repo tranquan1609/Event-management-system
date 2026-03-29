@@ -1,0 +1,147 @@
+﻿@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Bảng thống kê";
+    var upcoming = ViewBag.UpcomingEventsCount ?? 0;
+    var attendees = ViewBag.TotalAttendeesCount ?? 0;
+    var gifts = ViewBag.RemainingGiftsCount ?? 0;
+    var notifications = ViewBag.NewNotificationsCount ?? 0;
+    var monthlyData = ViewBag.MonthlyEventCounts as int[] ?? new int[12];
+    var dailyData = ViewBag.DailyEventCounts as int[] ?? new int[DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month)];
+}
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    .dashboard-card {
+        border-radius: 16px;
+        color: white;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .dashboard-icon {
+        font-size: 30px;
+    }
+</style>
+
+<h2 class="mb-4 fw-bold">📊 Bảng thống kê</h2>
+<div class="row g-4 mb-5">
+    <div class="col-md-3">
+        <div class="dashboard-card" style="background: linear-gradient(to right, #00c6ff, #0072ff);">
+            <div class="dashboard-icon">📅</div>
+            <div>
+                <div class="small">Sự kiện sắp diễn ra</div>
+                <div class="h4 fw-bold">@upcoming</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="dashboard-card" style="background: linear-gradient(to right, #56ab2f, #a8e063);">
+            <div class="dashboard-icon">👥</div>
+            <div>
+                <div class="small">Tổng số người tham gia</div>
+                <div class="h4 fw-bold">@attendees</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="dashboard-card" style="background: linear-gradient(to right, #f7971e, #ffd200);">
+            <div class="dashboard-icon">🎁</div>
+            <div>
+                <div class="small">Quà tặng còn lại</div>
+                <div class="h4 fw-bold">@gifts</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="dashboard-card" style="background: linear-gradient(to right, #f85032, #e73827);">
+            <div class="dashboard-icon">🔔</div>
+            <div>
+                <div class="small">Thông báo mới</div>
+                <div class="h4 fw-bold">@notifications</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dropdown chuyển đổi chế độ xem -->
+<div class="mb-3">
+    <select id="viewMode" class="form-select" style="width:200px;display:inline-block" onchange="changeViewMode()">
+        <option value="month">Xem theo tháng</option>
+        <option value="day">Xem theo ngày</option>
+    </select>
+</div>
+
+<!-- Biểu đồ đường: Số sự kiện theo tháng hoặc ngày -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h4 id="chartTitle">Số sự kiện theo tháng</h4>
+    </div>
+    <div class="card-body">
+        <canvas id="eventLineChart" width="600" height="300"></canvas>
+    </div>
+</div>
+
+<script>
+    const monthlyEventData = @Html.Raw(Json.Serialize(monthlyData));
+    const dailyEventData = @Html.Raw(Json.Serialize(dailyData));
+    let chart;
+    function renderChart(labels, data, title) {
+        if (chart) chart.destroy();
+        const ctx = document.getElementById('eventLineChart').getContext('2d');
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Số sự kiện',
+                    data: data,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: title
+                    }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+        document.getElementById('chartTitle').innerText = title;
+    }
+
+    function changeViewMode() {
+        const mode = document.getElementById('viewMode').value;
+        if (mode === 'month') {
+            renderChart(
+                ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+                monthlyEventData,
+                'Số sự kiện mỗi tháng trong năm ' + new Date().getFullYear()
+            );
+        } else {
+            const days = Array.from({length: dailyEventData.length}, (_, i) => 'Ngày ' + (i + 1));
+            renderChart(
+                days,
+                dailyEventData,
+                'Số sự kiện mỗi ngày trong tháng ' + (new Date().getMonth() + 1) + '/' + new Date().getFullYear()
+            );
+        }
+    }
+
+    // Khởi tạo mặc định là theo tháng
+    window.onload = function() {
+        changeViewMode();
+    };
+</script>

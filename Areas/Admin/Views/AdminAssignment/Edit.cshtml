@@ -1,0 +1,165 @@
+@model DACSWEBSK.Models.EventAssignment
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Sửa bài thu hoạch";
+}
+
+<style>
+    .assignment-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+    }
+
+    .assignment-form-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        padding: 2rem;
+    }
+
+    .form-control, .form-select {
+        border: 1px solid rgba(31, 38, 135, 0.1);
+        padding: 0.75rem 1.25rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+
+    .btn-back {
+        background: linear-gradient(135deg, #f6f9fc 0%, #f1f4f9 100%);
+        color: #2d3748;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+</style>
+
+<div class="assignment-header">
+    <div class="container">
+        <h1 class="display-6 mb-0">
+            <i class="fas fa-edit me-2"></i>
+            Sửa bài thu hoạch
+        </h1>
+    </div>
+</div>
+
+<div class="container">
+    <div class="assignment-form-container">
+        <form asp-action="Edit" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="CreatedAt" />
+            
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="mb-4">
+                <label asp-for="EventId" class="form-label">
+                    <i class="fas fa-calendar-alt"></i> Sự kiện <span class="text-danger">*</span>
+                </label>
+                <select asp-for="EventId" class="form-select" asp-items="ViewBag.Events" required>
+                    <option value="">-- Chọn sự kiện --</option>
+                </select>
+                <span asp-validation-for="EventId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Title" class="form-label">
+                    <i class="fas fa-heading"></i> Tiêu đề <span class="text-danger">*</span>
+                </label>
+                <input asp-for="Title" class="form-control" placeholder="Nhập tiêu đề bài thu hoạch..." />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Description" class="form-label">
+                    <i class="fas fa-align-left"></i> Mô tả
+                </label>
+                <textarea asp-for="Description" class="form-control" rows="4" placeholder="Nhập mô tả bài thu hoạch..."></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Instructions" class="form-label">
+                    <i class="fas fa-info-circle"></i> Hướng dẫn
+                </label>
+                <textarea asp-for="Instructions" class="form-control" rows="5" placeholder="Nhập hướng dẫn làm bài..."></textarea>
+                <span asp-validation-for="Instructions" class="text-danger"></span>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label asp-for="DueDate" class="form-label">
+                        <i class="fas fa-calendar-times"></i> Hạn nộp bài
+                    </label>
+                    <input asp-for="DueDate" type="datetime-local" class="form-control" value="@(Model.DueDate?.ToString("yyyy-MM-ddTHH:mm"))" />
+                    <span asp-validation-for="DueDate" class="text-danger"></span>
+                    <small class="text-muted">Để trống nếu không giới hạn thời gian</small>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="MaxScore" class="form-label">
+                        <i class="fas fa-star"></i> Điểm tối đa
+                    </label>
+                    <input asp-for="MaxScore" type="number" class="form-control" min="0" max="1000" />
+                    <span asp-validation-for="MaxScore" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="form-check form-switch">
+                        <input asp-for="AllowFileUpload" class="form-check-input" type="checkbox" />
+                        <label asp-for="AllowFileUpload" class="form-check-label">
+                            <i class="fas fa-file-upload"></i> Cho phép upload file
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-check form-switch">
+                        <input asp-for="AllowTextSubmission" class="form-check-input" type="checkbox" />
+                        <label asp-for="AllowTextSubmission" class="form-check-label">
+                            <i class="fas fa-keyboard"></i> Cho phép nhập văn bản
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-center gap-3 mt-5">
+                <a asp-action="Index" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </a>
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-save"></i> Cập nhật
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+

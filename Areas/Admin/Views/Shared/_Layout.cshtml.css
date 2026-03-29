@@ -1,0 +1,169 @@
+﻿/* Giao diện navbar brand */
+a.navbar-brand {
+    white-space: normal;
+    text-align: center;
+    word-break: break-word;
+    color: #ff4b6e;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+    a.navbar-brand:hover {
+        color: #e63e5c;
+        transform: scale(1.05);
+    }
+
+/* Liên kết */
+a {
+    color: #ff4b6e;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+    a:hover {
+        color: #e63e5c;
+        text-decoration: none;
+        transform: translateY(-2px);
+    }
+
+/* Nút chính */
+.btn-primary {
+    color: #fff;
+    background-color: #ff4b6e;
+    border-color: #e63e5c;
+    transition: all 0.3s ease;
+}
+
+    .btn-primary:hover {
+        background-color: #e63e5c;
+        border-color: #d03351;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(230, 62, 92, 0.3);
+    }
+
+/* Nav Pills Active */
+.nav-pills .nav-link.active,
+.nav-pills .show > .nav-link {
+    color: #fff;
+    background-color: #ff4b6e;
+    border-color: #e63e5c;
+}
+
+/* Viền phân cách */
+.border-top {
+    border-top: 1px solid #ffe6eb;
+}
+
+.border-bottom {
+    border-bottom: 1px solid #ffe6eb;
+}
+
+/* Bóng đổ nhẹ */
+.box-shadow {
+    box-shadow: 0 .5rem 1.5rem rgba(255, 75, 110, 0.1);
+}
+
+/* Nút chấp nhận chính sách */
+button.accept-policy {
+    font-size: 1rem;
+    line-height: inherit;
+    transition: all 0.3s ease;
+}
+
+/* Footer */
+.footer {
+    text-align: center;
+    color: #6c757d;
+    background-color: #fff5f7;
+    padding: 2rem 0;
+    border-top: 1px solid #ffe6eb;
+}
+
+/* Card chung */
+.card {
+    border-radius: 1rem;
+    background-color: #ffffff;
+    border: 1px solid #ffe6eb;
+    transition: all 0.3s ease;
+}
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(255, 75, 110, 0.1);
+    }
+
+/* Navbar */
+.navbar {
+    background: linear-gradient(45deg, #ff4b6e, #ff8f70) !important;
+    border-radius: 0;
+    box-shadow: 0 2px 15px rgba(255, 75, 110, 0.2);
+}
+
+    .navbar .nav-link {
+        color: #fff !important;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+    }
+
+        .navbar .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+/* Admin specific styles */
+.admin-card {
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px rgba(255, 75, 110, 0.1);
+    transition: all 0.3s ease;
+    border: 1px solid #ffe6eb;
+}
+
+    .admin-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(255, 75, 110, 0.15);
+    }
+
+.admin-table {
+    background: #fff;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(255, 75, 110, 0.1);
+}
+
+    .admin-table th {
+        background: #fff5f7;
+        color: #ff4b6e;
+        font-weight: 600;
+        border-bottom: 2px solid #ffe6eb;
+    }
+
+.admin-action-button {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+    .admin-action-button:hover {
+        transform: translateY(-2px);
+    }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #fff5f7;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #ff4b6e;
+    border-radius: 4px;
+}
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #e63e5c;
+    }

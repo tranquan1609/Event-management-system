@@ -1,0 +1,185 @@
+﻿@model List<DACSWEBSK.Models.Notification>
+
+@{
+    ViewData["Title"] = "Thông báo";
+}
+
+<style>
+    .notification-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 3rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .notification-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 30% 70%, rgba(102, 126, 234, 0.3) 0%, transparent 50%),
+                    radial-gradient(circle at 70% 30%, rgba(240, 147, 251, 0.2) 0%, transparent 50%);
+        opacity: 0.6;
+    }
+
+    .notification-header .container {
+        position: relative;
+        z-index: 1;
+    }
+
+    .notification-list {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .notification-item {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .notification-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(31, 38, 135, 0.15);
+    }
+
+    .notification-title {
+        color: #2d3748;
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .notification-time {
+        color: #718096;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .notification-content {
+        color: #4a5568;
+        font-size: 1rem;
+        line-height: 1.6;
+        margin: 1rem 0;
+    }
+
+    .btn-event-link {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 0.5rem 1.5rem;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-event-link:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+
+    .alert-no-notifications {
+        background: rgba(102, 126, 234, 0.1);
+        border: none;
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        max-width: 500px;
+        margin: 2rem auto;
+        color: #2d3748;
+    }
+
+    .alert-no-notifications i {
+        font-size: 3rem;
+        color: #667eea;
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    .notification-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin-left: 1rem;
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+    }
+
+    .notification-badge i {
+        margin-right: 0.25rem;
+    }
+</style>
+
+<div class="notification-header">
+    <div class="container">
+        <h1 class="display-4 mb-3">
+            <i class="fas fa-bell me-3"></i>
+            Thông báo
+        </h1>
+        <p class="lead">
+            Cập nhật những thông tin mới nhất về sự kiện
+            @if (Model?.Count > 0)
+            {
+                <span class="notification-badge">
+                    <i class="fas fa-envelope"></i>
+                    @Model.Count thông báo
+                </span>
+            }
+        </p>
+    </div>
+</div>
+
+<div class="container">
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert-no-notifications">
+            <i class="fas fa-bell-slash"></i>
+            <h4>Chưa có thông báo</h4>
+            <p class="text-muted mb-0">Hiện tại chưa có thông báo nào được gửi đi.</p>
+        </div>
+    }
+    else
+    {
+        <div class="notification-list">
+            @foreach (var notification in Model)
+            {
+                <div class="notification-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <h5 class="notification-title">@notification.Title</h5>
+                        <span class="notification-time">
+                            <i class="far fa-clock"></i>
+                            @notification.CreatedAt.ToString("g")
+                        </span>
+                    </div>
+                    <p class="notification-content">@notification.Content</p>
+                    @if (notification.EventId.HasValue)
+                    {
+                        <a href="@Url.Action("Details", "Event", new { id = notification.EventId })" 
+                           class="btn btn-event-link">
+                            <i class="fas fa-external-link-alt"></i>
+                            Xem sự kiện liên quan
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>

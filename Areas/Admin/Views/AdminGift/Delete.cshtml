@@ -1,0 +1,24 @@
+﻿@model DACSWEBSK.Models.Gift
+@{
+    ViewData["Title"] = "Xóa phần quà";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-lg p-5 rounded-4" style="background: linear-gradient(to right, #e0f7fa, #ffffff);">
+        <h2 class="text-center mb-5" style="color: #c0392b;">🗑️ Bạn có chắc chắn muốn xóa phần quà này?</h2>
+        
+        <div class="alert alert-warning">
+            <p>Bạn đang cố gắng xóa phần quà <strong>@Model.Name</strong>.</p>
+        </div>
+
+        <form asp-action="Delete" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+
+            <div class="d-flex justify-content-center gap-4 mt-4">
+                <button type="submit" class="btn btn-danger rounded-pill px-4 py-2">🗑️ Xóa</button>
+                <a asp-action="Index" class="btn btn-secondary rounded-pill px-4 py-2">❌ Hủy</a>
+            </div>
+        </form>
+    </div>
+</div>

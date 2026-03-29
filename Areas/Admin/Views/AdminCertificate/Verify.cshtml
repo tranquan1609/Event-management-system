@@ -1,0 +1,34 @@
+@{
+    ViewData["Title"] = "Xác thực chứng nhận tham gia sự kiện";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Xác thực chứng nhận tham gia sự kiện</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="/Admin">Trang chủ</a></li>
+        <li class="breadcrumb-item active">Xác thực chứng nhận</li>
+    </ol>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-search me-1"></i>
+                    Nhập mã chứng nhận
+                </div>
+                <div class="card-body">
+                    <form asp-action="Verify" method="post">
+                        <div class="mb-3">
+                            <label for="certificateNumber" class="form-label">Mã chứng nhận</label>
+                            <input type="text" class="form-control" id="certificateNumber" name="certificateNumber" required
+                                placeholder="Nhập mã chứng chỉ cần xác thực">
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Xác thực
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

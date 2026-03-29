@@ -1,0 +1,58 @@
+ @model DACSWEBSK.Models.Certificate
+@{
+    ViewData["Title"] = "Kết quả xác thực chứng chỉ";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Kết quả xác thực chứng chỉ</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="/Admin">Trang chủ</a></li>
+        <li class="breadcrumb-item"><a asp-action="Verify">Xác thực chứng chỉ</a></li>
+        <li class="breadcrumb-item active">Kết quả</li>
+    </ol>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <i class="fas fa-check-circle me-1"></i>
+                    Chứng chỉ hợp lệ
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th style="width: 200px">Mã chứng chỉ:</th>
+                                <td>@Model.CertificateNumber</td>
+                            </tr>
+                            <tr>
+                                <th>Người nhận:</th>
+                                <td>@Model.Attendee.FullName</td>
+                            </tr>
+                            <tr>
+                                <th>Email:</th>
+                                <td>@Model.Attendee.Email</td>
+                            </tr>
+                            <tr>
+                                <th>Sự kiện:</th>
+                                <td>@Model.Event.Title</td>
+                            </tr>
+                            <tr>
+                                <th>Ngày cấp:</th>
+                                <td>@Model.IssueDate.ToString("dd/MM/yyyy HH:mm")</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="text-center mt-4">
+                        <a href="@Model.CertificateUrl" target="_blank" class="btn btn-primary">
+                            <i class="fas fa-download"></i> Tải chứng chỉ
+                        </a>
+                        <a asp-action="Verify" class="btn btn-secondary">
+                            <i class="fas fa-search"></i> Xác thực chứng chỉ khác
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

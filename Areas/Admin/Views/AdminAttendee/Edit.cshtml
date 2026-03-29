@@ -1,0 +1,51 @@
+﻿@model DACSWEBSK.Models.Attendee
+
+@{
+    ViewData["Title"] = "Duyệt trạng thái vé";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-lg p-5 rounded-4" style="background: linear-gradient(to right, #e0f7fa, #ffffff);">
+        <h2 class="text-center mb-5" style="color: #0077b6;">🎫 @ViewData["Title"]</h2>
+
+        <form asp-action="Edit" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="EventId" />
+
+            <div class="mb-4">
+                <label asp-for="FullName" class="form-label fw-bold">👤 Họ tên</label>
+                <input asp-for="FullName" class="form-control rounded-pill shadow-sm" readonly />
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Email" class="form-label fw-bold">📧 Email</label>
+                <input asp-for="Email" class="form-control rounded-pill shadow-sm" readonly />
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Phone" class="form-label fw-bold">📞 Số điện thoại</label>
+                <input asp-for="Phone" class="form-control rounded-pill shadow-sm" readonly />
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="TicketStatus" class="form-label fw-bold">📌 Trạng thái vé</label>
+                <select asp-for="TicketStatus" class="form-select rounded-pill shadow-sm">
+                    <option value="Pending">Chờ duyệt</option>
+                    <option value="Confirmed">Đã duyệt</option>
+                    <option value="Cancelled">Đã từ chối</option>
+                </select>
+                <span asp-validation-for="TicketStatus" class="text-danger small"></span>
+            </div>
+
+            <div class="d-flex justify-content-center gap-4 mt-5">
+                <a asp-action="Index" asp-route-eventId="@Model.EventId" class="btn btn-outline-secondary rounded-pill px-4 py-2">🔙 Quay lại</a>
+                <button type="submit" class="btn btn-success rounded-pill px-4 py-2">💾 Lưu</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

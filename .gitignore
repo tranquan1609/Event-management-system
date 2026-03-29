@@ -1,0 +1,26 @@
+# Build
+bin/
+obj/
+out/
+
+# Visual Studio / Rider
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# User secrets & local config (chứa mật khẩu, API key)
+appsettings.json
+appsettings.Development.json
+
+# Logs
+*.log
+bot_error.log
+
+# File tạm / transcript tải về nhầm
+*.vtt
+
+# OS
+Thumbs.db
+Desktop.ini

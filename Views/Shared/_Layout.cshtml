@@ -1,0 +1,588 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - DACSWEBSK</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    @await RenderSectionAsync("Styles", required: false)
+
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --accent-gradient: linear-gradient(45deg, #ff4b6e, #ff8f70);
+            --glass-bg: rgba(255, 255, 255, 0.9);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --accent-color: #ff4b6e;
+            --text-color: #2d3748;
+            --light-bg: #fafafa;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
+            background: var(--glass-bg) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1rem 0;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .gradient-text {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 600;
+        }
+
+        .nav-link {
+            color: var(--text-color) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-color) !important;
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .dropdown-menu {
+            border: none;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+            border: 1px solid var(--glass-border);
+            padding: 1rem 0;
+        }
+
+        .dropdown-item {
+            color: var(--text-color);
+            padding: 0.7rem 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary-color);
+            transform: translateX(5px);
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 50px;
+            padding: 0.8rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-outline-primary {
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            border-radius: 50px;
+            padding: 0.8rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            background: transparent;
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--primary-gradient);
+            border-color: transparent;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .alert {
+            border: none;
+            border-radius: 15px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .alert-success {
+            background: rgba(72, 187, 120, 0.1);
+            color: #2f855a;
+        }
+
+        .alert-danger {
+            background: rgba(245, 101, 101, 0.1);
+            color: #e53e3e;
+        }
+
+        footer {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 4rem 0 2rem;
+            margin-top: auto;
+            position: relative;
+        }
+
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-gradient);
+        }
+
+        footer a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        footer a:hover {
+            color: white;
+            transform: translateX(5px);
+        }
+
+        footer h5 {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        footer .list-unstyled li {
+            margin-bottom: 0.8rem;
+        }
+
+        .spinner-overlay {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+        }
+
+        .spinner {
+            border: 3px solid var(--primary-color);
+            border-top: 3px solid transparent;
+        }
+
+        /* Animations */
+        .animate__fadeIn {
+            animation-duration: 1s;
+        }
+
+        .animate__fadeInLeft,
+        .animate__fadeInRight,
+        .animate__fadeInUp,
+        .animate__fadeInDown {
+            animation-duration: 0.8s;
+        }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .navbar {
+                padding: 0.5rem 0;
+            }
+
+            .navbar-brand {
+                font-size: 1.2rem;
+            }
+
+            .nav-link {
+                padding: 0.5rem;
+            }
+
+            footer {
+                padding: 2rem 0 1rem;
+            }
+        }
+
+        /* Logo styles */
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            background: var(--accent-gradient);
+            width: 45px;
+            height: 45px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(255, 75, 110, 0.3);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        .logo-icon i {
+            color: white;
+            font-size: 1.5rem;
+            z-index: 1;
+            transition: transform 0.3s ease;
+        }
+
+        .logo-icon::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .logo-container:hover .logo-icon {
+            transform: translateY(-2px);
+        }
+
+        .logo-container:hover .logo-icon::before {
+            transform: translateY(0);
+        }
+
+        .logo-container:hover .logo-icon i {
+            transform: scale(1.1);
+        }
+
+        .logo-text {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+        }
+
+        .logo-text-main {
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: block;
+            line-height: 1.2;
+        }
+
+        .logo-text-sub {
+            font-size: 0.8rem;
+            color: var(--accent-color);
+            opacity: 0.9;
+            display: block;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body class="animate__animated animate__fadeIn">
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+            <div class="container">
+                <a class="logo-container animate__animated animate__fadeInLeft" href="/">
+                    <div class="logo-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="logo-text">
+                        <span class="logo-text-main">DACSWEBSK</span>
+                        <span class="logo-text-sub">Event Management</span>
+                    </div>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto animate__animated animate__fadeInRight">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="Index">
+                                <i class="fas fa-home"></i> Trang chủ
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Event" asp-action="Index">
+                                <i class="fas fa-calendar-alt"></i> Sự kiện
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Video" asp-action="Index">
+                                <i class="fas fa-video"></i> Video
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Notification" asp-action="Index">
+                                <i class="fas fa-bell"></i> Thông báo
+                            </a>
+                        </li>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button"
+                                   data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-cog"></i> Quản trị
+                                </a>
+                                <ul class="dropdown-menu animate slideIn" aria-labelledby="adminDropdown">
+                                    <li>
+                                        <a class="dropdown-item" asp-area="Admin" asp-controller="AdminEvent" asp-action="Index">
+                                            <i class="fas fa-calendar-check"></i> Quản lý sự kiện
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-area="Admin" asp-controller="AdminVideo" asp-action="Index">
+                                            <i class="fas fa-film"></i> Quản lý video
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-area="Admin" asp-controller="AdminAttendee" asp-action="Index">
+                                            <i class="fas fa-users"></i> Quản lý người tham dự
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" asp-area="Admin" asp-controller="AdminGift" asp-action="Index">
+                                            <i class="fas fa-gift"></i> Quản lý quà tặng
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                    </ul>
+                    <partial name="_LoginPartial" />
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main role="main" class="pb-3" style="margin-top: 76px;">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeInDown" role="alert">
+                <i class="fas fa-check-circle me-2"></i>
+                @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeInDown" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @RenderBody()
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 animate__animated animate__fadeInLeft">
+                    <h5 class="mb-4">Về chúng tôi</h5>
+                    <p class="mb-3">DACSWEBSK - Hệ thống quản lý sự kiện hiện đại và chuyên nghiệp.</p>
+                    <div class="social-links">
+                        <a href="#" class="me-3"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="me-3"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="me-3"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-4 animate__animated animate__fadeInUp">
+                    <h5 class="mb-4">Liên kết nhanh</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/"><i class="fas fa-chevron-right me-2"></i>Trang chủ</a></li>
+                        <li><a href="/Event"><i class="fas fa-chevron-right me-2"></i>Sự kiện</a></li>
+                        <li><a href="/Video"><i class="fas fa-chevron-right me-2"></i>Video</a></li>
+                        <li><a href="/Notification"><i class="fas fa-chevron-right me-2"></i>Thông báo</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 animate__animated animate__fadeInRight">
+                    <h5 class="mb-4">Liên hệ</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-3"><i class="fas fa-phone me-2"></i> +84 123 456 789</li>
+                        <li class="mb-3"><i class="fas fa-envelope me-2"></i> info@dacswebsk.com</li>
+                        <li class="mb-3"><i class="fas fa-map-marker-alt me-2"></i> Hà Nội, Việt Nam</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="mt-4 mb-4" style="border-color: rgba(255,255,255,0.1);">
+            <div class="text-center animate__animated animate__fadeInUp">
+                <p class="mb-0">&copy; @DateTime.Now.Year - DACSWEBSK. Đã đăng ký bản quyền.</p>
+            </div>
+        </div>
+    </footer>
+
+    <div id="loading-spinner" class="spinner-overlay" style="display: none;">
+        <div class="spinner"></div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        // Show loading spinner
+        function showLoading() {
+            document.getElementById('loading-spinner').style.display = 'flex';
+        }
+        // Hide loading spinner
+        function hideLoading() {
+            document.getElementById('loading-spinner').style.display = 'none';
+        }
+
+        // Add loading spinner to form submissions
+        document.addEventListener('DOMContentLoaded', function() {
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', function() {
+                    showLoading();
+                });
+            });
+
+            // Initialize tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+
+            // Auto-hide alerts after 5 seconds
+            window.setTimeout(function() {
+                $(".alert").fadeTo(500, 0).slideUp(500, function(){
+                    $(this).remove();
+                });
+            }, 5000);
+
+            // Add smooth scroll behavior
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+
+            // Add active class to current nav item
+            const currentLocation = location.pathname;
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentLocation) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+
+    @* --- AI Chatbox START --- *@
+    <style>
+        #ai-chatbox { font-family: 'Segoe UI', Arial, sans-serif; box-shadow: 0 4px 24px rgba(0,0,0,0.15); position: fixed; bottom: 24px; right: 24px; z-index: 9999; }
+        #ai-chatbox-header { background: #007bff; color: #fff; padding: 10px 16px; border-radius: 8px 8px 0 0; cursor: pointer; user-select: none; }
+        #ai-chatbox-messages { background: #f8f9fa; border-radius: 0 0 8px 8px; flex: 1; padding: 12px; overflow-y: auto; font-size: 15px; }
+        .ai-chatbox-msg-user { background: #007bff; color: #fff; padding: 8px 12px; border-radius: 16px 16px 0 16px; margin: 8px 0 8px auto; max-width: 80%; text-align: right; }
+        .ai-chatbox-msg-bot { background: #e9ecef; color: #222; padding: 8px 12px; border-radius: 16px 16px 16px 0; margin: 8px auto 8px 0; max-width: 80%; text-align: left; }
+        #ai-chatbox-body { background: #fff; width: 320px; height: 400px; border: 1px solid #007bff; border-top: none; border-radius: 0 0 8px 8px; display: flex; flex-direction: column; }
+    </style>
+    <div id="ai-chatbox">
+        <div id="ai-chatbox-header">
+            DACS Assistant
+            <span id="ai-chatbox-close" style="float: right; cursor: pointer;">_</span>
+        </div>
+        <div id="ai-chatbox-body">
+            <div id="ai-chatbox-messages"></div>
+            <div style="display: flex; border-top: 1px solid #eee;">
+                <input id="ai-chatbox-input" type="text" placeholder="Nhập tin nhắn của bạn..." style="flex: 1; border: none; padding: 10px; outline: none;">
+                <button id="ai-chatbox-send" style="background: #007bff; color: #fff; border: none; padding: 0 18px; cursor: pointer;">Gửi</button>
+            </div>
+        </div>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatbox = document.getElementById('ai-chatbox');
+        const header = document.getElementById('ai-chatbox-header');
+        const closeBtn = document.getElementById('ai-chatbox-close');
+        const body = document.getElementById('ai-chatbox-body');
+        const messages = document.getElementById('ai-chatbox-messages');
+        const input = document.getElementById('ai-chatbox-input');
+        const sendBtn = document.getElementById('ai-chatbox-send');
+
+        // Ẩn/hiện chatbox
+        closeBtn.onclick = function() {
+            if (body.style.display === 'none') {
+                body.style.display = 'flex';
+                closeBtn.textContent = '_';
+            } else {
+                body.style.display = 'none';
+                closeBtn.textContent = '⬆';
+            }
+        };
+
+        // Gửi tin nhắn
+        function appendMessage(text, isUser) {
+            const div = document.createElement('div');
+            div.className = isUser ? 'ai-chatbox-msg-user' : 'ai-chatbox-msg-bot';
+            div.textContent = text;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function sendMessage() {
+            const text = input.value.trim();
+            if (!text) return;
+            appendMessage(text, true);
+            input.value = '';
+            appendMessage('Đang trả lời...', false);
+
+            fetch('/api/simplechat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text })
+            })
+            .then(res => res.json())
+            .then(data => {
+                messages.removeChild(messages.lastChild);
+                appendMessage(data.text, false);
+            })
+            .catch(() => {
+                messages.removeChild(messages.lastChild);
+                appendMessage('Xin lỗi, hệ thống đang bận. Vui lòng thử lại sau!', false);
+            });
+        }
+
+        sendBtn.onclick = sendMessage;
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // Lời chào mặc định
+        appendMessage('Xin chào! Tôi có thể giúp gì cho bạn?', false);
+    });
+    </script>
+    @* --- AI Chatbox END --- *@
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

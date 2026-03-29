@@ -1,0 +1,103 @@
+﻿@model DACSWEBSK.Models.Event
+@{
+    ViewData["Title"] = "Chi tiết sự kiện";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-lg p-5 rounded-4" style="background: linear-gradient(to right, #e0f7fa, #ffffff);">
+        <h2 class="text-center mb-5" style="color: #0077b6;">🔍 Chi tiết sự kiện</h2>
+
+        <dl class="row fs-5">
+            <dt class="col-sm-3 fw-bold">🆔 ID:</dt>
+            <dd class="col-sm-9">@Model.Id</dd>
+
+            <dt class="col-sm-3 fw-bold">📝 Tiêu đề:</dt>
+            <dd class="col-sm-9">@Model.Title</dd>
+
+            <dt class="col-sm-3 fw-bold">📄 Mô tả:</dt>
+            <dd class="col-sm-9">@Model.Description</dd>
+
+            <dt class="col-sm-3 fw-bold">⏰ Thời gian bắt đầu:</dt>
+            <dd class="col-sm-9">@Model.StartTime.ToString("g")</dd>
+
+            <dt class="col-sm-3 fw-bold">🕔 Thời gian kết thúc:</dt>
+            <dd class="col-sm-9">@Model.EndTime.ToString("g")</dd>
+
+            <dt class="col-sm-3 fw-bold">📍 Địa điểm:</dt>
+            <dd class="col-sm-9">@Model.Location?.Name</dd>
+
+            <dt class="col-sm-3 fw-bold">🖼️ Hình ảnh:</dt>
+            <dd class="col-sm-9">
+                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <img src="@Model.ImageUrl" alt="Event Image" class="img-fluid rounded shadow-sm" style="max-height: 200px;" />
+                }
+                else
+                {
+                    <em>Không có hình ảnh</em>
+                }
+            </dd>
+
+            <dt class="col-sm-3 fw-bold">📌 Trạng thái:</dt>
+            <dd class="col-sm-9">@Model.Status</dd>
+        </dl>
+
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Bài thu hoạch</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.Assignments?.Any() == true)
+                {
+                    <div class="list-group">
+                        @foreach (var assignment in Model.Assignments)
+                        {
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">@assignment.Title</h6>
+                                        <small class="text-muted">
+                                            @if (assignment.DueDate.HasValue)
+                                            {
+                                                <span>Hạn nộp: @assignment.DueDate.Value.ToString("g")</span>
+                                            }
+                                            <span class="ms-2">Số bài nộp: @assignment.Submissions?.Count ?? 0</span>
+                                        </small>
+                                    </div>
+                                    <div>
+                                        <a asp-controller="AdminAssignment" asp-action="Details" asp-route-id="@assignment.Id" class="btn btn-sm btn-info me-1">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a asp-controller="AdminAssignment" asp-action="ManageSubmissions" asp-route-id="@assignment.Id" class="btn btn-sm btn-success me-1">
+                                            <i class="fas fa-list"></i>
+                                        </a>
+                                        <a asp-controller="AdminAssignment" asp-action="Edit" asp-route-id="@assignment.Id" class="btn btn-sm btn-warning me-1">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">Chưa có bài thu hoạch nào cho sự kiện này.</p>
+                }
+                <div class="mt-3">
+                    <a asp-controller="AdminAssignment" asp-action="Create" asp-route-eventId="@Model.Id" class="btn btn-success">
+                        <i class="fas fa-plus me-2"></i>Thêm bài thu hoạch
+                    </a>
+                    <a asp-controller="AdminAssignment" asp-action="Index" asp-route-eventId="@Model.Id" class="btn btn-outline-primary">
+                        <i class="fas fa-list me-2"></i>Quản lý tất cả bài thu hoạch
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-center mt-4">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning rounded-pill px-4 me-3">✏️ Chỉnh sửa</a>
+            <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">🔙 Quay lại</a>
+        </div>
+    </div>
+</div>

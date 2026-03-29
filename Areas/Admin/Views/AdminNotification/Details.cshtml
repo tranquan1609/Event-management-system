@@ -1,0 +1,41 @@
+﻿@model DACSWEBSK.Models.Notification
+@{
+    ViewData["Title"] = "Chi tiết thông báo";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-lg p-5 rounded-4" style="background: linear-gradient(to right, #e0f7fa, #ffffff);">
+        <h2 class="text-center mb-5" style="color: #0077b6;">🔍 @ViewData["Title"]</h2>
+
+        <dl class="row fs-5">
+            <dt class="col-sm-3 fw-bold">🆔 ID:</dt>
+            <dd class="col-sm-9">@Model.Id</dd>
+
+            <dt class="col-sm-3 fw-bold">📝 Tiêu đề:</dt>
+            <dd class="col-sm-9">@Model.Title</dd>
+
+            <dt class="col-sm-3 fw-bold">📄 Nội dung:</dt>
+            <dd class="col-sm-9">@Model.Content</dd>
+
+            <dt class="col-sm-3 fw-bold">📅 Ngày tạo:</dt>
+            <dd class="col-sm-9">@Model.CreatedAt.ToString("g")</dd>
+
+            <dt class="col-sm-3 fw-bold">📌 Sự kiện liên kết:</dt>
+            <dd class="col-sm-9">
+                @if (Model.Event != null)
+                {
+                    <span class="badge bg-info text-dark">@Model.Event.Title</span>
+                }
+                else
+                {
+                    <span class="text-muted"><em>Không có</em></span>
+                }
+            </dd>
+        </dl>
+
+        <div class="d-flex justify-content-center mt-4">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning rounded-pill px-4 me-3">✏️ Chỉnh sửa</a>
+            <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">🔙 Quay lại</a>
+        </div>
+    </div>
+</div>

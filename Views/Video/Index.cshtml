@@ -1,0 +1,263 @@
+﻿@model List<DACSWEBSK.Models.Video>
+
+@{
+    ViewData["Title"] = "Livestream Videos";
+
+    string GetYouTubeVideoId(string url)
+    {
+        if (string.IsNullOrEmpty(url)) return "";
+
+        if (url.Contains("youtube.com/watch?v="))
+            return url.Split("v=")[1].Split('&')[0];
+        else if (url.Contains("youtu.be/"))
+            return url.Split("/").Last().Split('?')[0];
+        
+        return "";
+    }
+}
+
+<style>
+    .video-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 3rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .video-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('/images/video-bg.jpg') center/cover;
+        opacity: 0.2;
+        filter: blur(8px);
+    }
+
+    .video-header .container {
+        position: relative;
+        z-index: 1;
+    }
+
+    .video-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+        transition: all 0.3s ease;
+        height: 100%;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .video-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 45px rgba(31, 38, 135, 0.2);
+    }
+
+    .video-thumbnail {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .video-thumbnail img {
+        transition: transform 0.5s ease;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .video-card:hover .video-thumbnail img {
+        transform: scale(1.1);
+    }
+
+    .video-duration {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.75);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+    }
+
+    .video-info {
+        padding: 1.5rem;
+    }
+
+    .video-title {
+        color: #2d3748;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+        line-height: 1.4;
+    }
+
+    .video-meta {
+        color: #718096;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .video-meta i {
+        width: 20px;
+        text-align: center;
+        margin-right: 5px;
+    }
+
+    .video-description {
+        color: #4a5568;
+        font-size: 0.95rem;
+        margin-bottom: 1rem;
+        line-height: 1.6;
+    }
+
+    .video-summary {
+        background: rgba(102, 126, 234, 0.1);
+        padding: 1rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid #667eea;
+    }
+
+    .btn-group {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-success, .btn-primary {
+        flex: 1;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+        border: none;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+    }
+
+    .btn-success:hover, .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .alert-info {
+        background: rgba(102, 126, 234, 0.1);
+        border: none;
+        border-radius: 12px;
+        padding: 1.5rem;
+        color: #2d3748;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        box-shadow: 0 4px 15px rgba(31, 38, 135, 0.1);
+    }
+
+    .alert-info i {
+        font-size: 1.5rem;
+        color: #667eea;
+    }
+</style>
+
+<div class="video-header">
+    <div class="container">
+        <h1 class="display-4 mb-3">
+            <i class="fas fa-video me-3"></i>
+            Thư viện Video
+        </h1>
+        <p class="lead">
+            Xem lại các video và livestream của các sự kiện đã diễn ra
+        </p>
+    </div>
+</div>
+
+<div class="container">
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            <span>Chưa có video livestream nào.</span>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var video in Model)
+            {
+                var videoId = GetYouTubeVideoId(video.Url);
+                <div class="col-md-6 col-lg-4">
+                    <div class="video-card">
+                        <div class="video-thumbnail ratio ratio-16x9">
+                            @if (!string.IsNullOrEmpty(videoId))
+                            {
+                                <img src="https://img.youtube.com/vi/@videoId/maxresdefault.jpg" 
+                                     onerror="this.src='https://img.youtube.com/vi/@videoId/0.jpg'"
+                                     alt="@video.Title" />
+                            }
+                            else if (!string.IsNullOrEmpty(video.LocalFilePath))
+                            {
+                                <video controls>
+                                    <source src="@video.LocalFilePath" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                            }
+                            <div class="video-duration">
+                                @(video.Duration / 60):@(video.Duration % 60)
+                            </div>
+                        </div>
+                        <div class="video-info">
+                            <h5 class="video-title">@video.Title</h5>
+                            <div class="video-meta">
+                                <p class="mb-2">
+                                    <i class="fas fa-calendar-alt text-primary"></i>
+                                    Sự kiện: @video.Event?.Title
+                                </p>
+                                <p class="mb-2">
+                                    <i class="far fa-clock text-info"></i>
+                                    Ngày đăng: @video.UploadDate.ToString("dd/MM/yyyy HH:mm")
+                                </p>
+                            </div>
+                            <p class="video-description">@video.Description</p>
+                            @if (!string.IsNullOrEmpty(video.Summary))
+                            {
+                                <div class="video-summary">
+                                    <strong>Tóm tắt:</strong> @video.Summary
+                                </div>
+                            }
+                            <div class="btn-group">
+                                <a href="@Url.Action("Details", "Video", new { id = video.Id })" class="btn btn-success">
+                                    <i class="fas fa-info-circle"></i>
+                                    Chi tiết
+                                </a>
+                                @if (!string.IsNullOrEmpty(video.Url))
+                                {
+                                    <a href="@video.Url" target="_blank" class="btn btn-primary">
+                                        <i class="fas fa-play"></i>
+                                        Xem ngay
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

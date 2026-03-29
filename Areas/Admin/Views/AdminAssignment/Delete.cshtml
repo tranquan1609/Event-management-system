@@ -1,0 +1,93 @@
+@model DACSWEBSK.Models.EventAssignment
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Xóa bài thu hoạch";
+}
+
+<style>
+    .assignment-header {
+        background: linear-gradient(135deg, #f85032 0%, #e73827 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+    }
+
+    .assignment-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        padding: 2rem;
+    }
+
+    .warning-box {
+        background: rgba(248, 80, 50, 0.1);
+        border-left: 4px solid #f85032;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+</style>
+
+<div class="assignment-header">
+    <div class="container">
+        <h1 class="display-6 mb-0">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            Xóa bài thu hoạch
+        </h1>
+    </div>
+</div>
+
+<div class="container">
+    <div class="assignment-container">
+        <div class="warning-box">
+            <h5 class="text-danger mb-3">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Cảnh báo!
+            </h5>
+            <p class="mb-0">
+                Bạn có chắc chắn muốn xóa bài thu hoạch này? Hành động này sẽ xóa tất cả các bài nộp liên quan và không thể hoàn tác!
+            </p>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Thông tin bài thu hoạch</h5>
+                <hr />
+                <dl class="row">
+                    <dt class="col-sm-3">ID:</dt>
+                    <dd class="col-sm-9">@Model.Id</dd>
+
+                    <dt class="col-sm-3">Sự kiện:</dt>
+                    <dd class="col-sm-9">@Model.Event?.Title</dd>
+
+                    <dt class="col-sm-3">Tiêu đề:</dt>
+                    <dd class="col-sm-9">@Model.Title</dd>
+
+                    <dt class="col-sm-3">Số bài nộp:</dt>
+                    <dd class="col-sm-9">
+                        <span class="badge bg-primary">@Model.Submissions?.Count ?? 0</span>
+                    </dd>
+
+                    <dt class="col-sm-3">Ngày tạo:</dt>
+                    <dd class="col-sm-9">@Model.CreatedAt.ToString("g")</dd>
+                </dl>
+            </div>
+        </div>
+
+        <form asp-action="Delete" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            
+            <div class="d-flex justify-content-center gap-3">
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Quay lại
+                </a>
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash me-2"></i>Xác nhận xóa
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+

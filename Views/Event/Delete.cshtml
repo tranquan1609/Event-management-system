@@ -1,0 +1,71 @@
+@model DACSWEBSK.Models.Event
+
+@{
+    ViewData["Title"] = "Xóa sự kiện";
+}
+
+<div class="container mt-4">
+    <h2>Xác nhận xóa sự kiện</h2>
+    <div class="alert alert-warning">
+        <h4>Bạn có chắc chắn muốn xóa sự kiện này?</h4>
+        <p>Việc xóa sẽ xóa tất cả dữ liệu liên quan bao gồm:</p>
+        <ul>
+            <li>Danh sách người tham dự (@Model.Attendees?.Count ?? 0 người)</li>
+            <li>Các video (@Model.Videos?.Count ?? 0 video)</li>
+            <li>Các câu hỏi (@Model.Questions?.Count ?? 0 câu hỏi)</li>
+            <li>Lịch trình sự kiện</li>
+            <li>Chứng chỉ đã cấp</li>
+            <li>Thông báo liên quan</li>
+        </ul>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Thông tin sự kiện</h5>
+            <dl class="row">
+                <dt class="col-sm-3">Tên sự kiện</dt>
+                <dd class="col-sm-9">@Model.Title</dd>
+
+                <dt class="col-sm-3">Thời gian</dt>
+                <dd class="col-sm-9">
+                    @Model.StartTime.ToString("dd/MM/yyyy HH:mm") - @Model.EndTime.ToString("dd/MM/yyyy HH:mm")
+                </dd>
+
+                <dt class="col-sm-3">Địa điểm</dt>
+                <dd class="col-sm-9">@(Model.Location?.Name ?? "Chưa có")</dd>
+
+                <dt class="col-sm-3">Trạng thái</dt>
+                <dd class="col-sm-9">
+                    <span class="badge @(Model.Status switch {
+                        "Upcoming" => "bg-primary",
+                        "InProgress" => "bg-success",
+                        "Completed" => "bg-secondary",
+                        "Cancelled" => "bg-danger",
+                        _ => "bg-secondary"
+                    })">@Model.Status</span>
+                </dd>
+            </dl>
+        </div>
+    </div>
+
+    <form asp-action="Delete" method="post">
+        <input type="hidden" asp-for="Id" />
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa sự kiện này?')">
+                <i class="fas fa-trash-alt"></i> Xác nhận xóa
+            </button>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Quay lại
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        // Thêm animation cho alert
+        $(document).ready(function() {
+            $('.alert').hide().fadeIn(500);
+        });
+    </script>
+} 

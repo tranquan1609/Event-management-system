@@ -1,0 +1,77 @@
+﻿@model DACSWEBSK.Models.Attendee
+@{
+    ViewData["Title"] = "Đăng ký tham gia sự kiện";
+}
+
+<div class="container py-4">
+    <h1 class="mb-4">📝 Đăng ký tham gia sự kiện</h1>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                @foreach (var modelState in ViewData.ModelState.Values)
+                {
+                    foreach (var error in modelState.Errors)
+                    {
+                        <li>@error.ErrorMessage</li>
+                    }
+                }
+            </ul>
+        </div>
+    }
+
+    <form asp-action="RegisterAttendee" method="post" id="registerForm">
+        <input type="hidden" asp-for="EventId" />
+
+        <div class="form-floating mb-3">
+            <input asp-for="FullName" class="form-control" placeholder="Họ tên" required />
+            <label asp-for="FullName">Họ tên</label>
+            <span asp-validation-for="FullName" class="text-danger"></span>
+        </div>
+
+        <div class="form-floating mb-3">
+            <input asp-for="Email" type="email" class="form-control" placeholder="Email" required />
+            <label asp-for="Email">Email</label>
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+
+        <div class="form-floating mb-3">
+            <input asp-for="Phone" class="form-control" placeholder="Số điện thoại" />
+            <label asp-for="Phone">Số điện thoại</label>
+            <span asp-validation-for="Phone" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-success" id="submitBtn">
+            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="submitSpinner"></span>
+            <span id="submitText">Hoàn tất đăng ký</span>
+        </button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            $('#registerForm').on('submit', function() {
+                // Disable button and show spinner
+                var btn = $('#submitBtn');
+                var spinner = $('#submitSpinner');
+                var text = $('#submitText');
+                
+                btn.prop('disabled', true);
+                spinner.removeClass('d-none');
+                text.text('Đang xử lý...');
+                
+                // Re-enable after 10s in case of error
+                setTimeout(function() {
+                    btn.prop('disabled', false);
+                    spinner.addClass('d-none');
+                    text.text('Hoàn tất đăng ký');
+                }, 10000);
+                
+                return true;
+            });
+        });
+    </script>
+}
