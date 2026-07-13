@@ -1,6 +1,4 @@
 using System;
-using System.Net;
-using System.Net.Mail;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 
@@ -15,38 +13,16 @@ namespace DACSWEBSK.Services
 
     public class EmailService : IEmailService
     {
-        private readonly string _smtpHost;
-        private readonly int _smtpPort;
-        private readonly string _smtpUsername;
-        private readonly string _smtpPassword;
         private readonly IConfiguration _configuration;
 
         public EmailService(IConfiguration configuration)
         {
-            _smtpHost = configuration["EmailSettings:SmtpHost"];
-            _smtpPort = int.Parse(configuration["EmailSettings:SmtpPort"]);
-            _smtpUsername = configuration["EmailSettings:SmtpUsername"];
-            _smtpPassword = configuration["EmailSettings:SmtpPassword"];
+            _configuration = configuration;
         }
 
-        public async Task SendEmailAsync(string to, string subject, string body)
+        public Task SendEmailAsync(string to, string subject, string body)
         {
-            var message = new MailMessage
-            {
-                From = new MailAddress(_smtpUsername),
-                Subject = subject,
-                Body = body,
-                IsBodyHtml = true
-            };
-            message.To.Add(to);
-
-            using var client = new SmtpClient(_smtpHost, _smtpPort)
-            {
-                Credentials = new NetworkCredential(_smtpUsername, _smtpPassword),
-                EnableSsl = true
-            };
-
-            await client.SendMailAsync(message);
+            return EmailDispatch.SendAsync(_configuration, to, subject, body);
         }
 
         public async Task SendEventApprovalEmailAsync(string to, string fullName, string eventTitle, DateTime eventDate)

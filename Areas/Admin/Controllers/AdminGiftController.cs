@@ -1,8 +1,7 @@
 ﻿using DACSWEBSK.Models;
+using DACSWEBSK.Services.Storage;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.IO;
-using Microsoft.AspNetCore.Hosting;
 
 namespace DACSWEBSK.Areas.Admin.Controllers
 {
@@ -10,28 +9,25 @@ namespace DACSWEBSK.Areas.Admin.Controllers
     public class AdminGiftController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IFileStorageService _fileStorage;
 
-        public AdminGiftController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment)
+        public AdminGiftController(ApplicationDbContext context, IFileStorageService fileStorage)
         {
             _context = context;
-            _webHostEnvironment = webHostEnvironment;
+            _fileStorage = fileStorage;
         }
 
-        // Danh sách phần quà
         public async Task<IActionResult> Index()
         {
             var gifts = await _context.Gifts.ToListAsync();
             return View(gifts);
         }
 
-        // GET: Tạo mới phần quà
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Tạo mới phần quà
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Gift gift, IFormFile ImageFile)
@@ -40,18 +36,7 @@ namespace DACSWEBSK.Areas.Admin.Controllers
             {
                 if (ImageFile != null && ImageFile.Length > 0)
                 {
-                    var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "gifts");
-                    if (!Directory.Exists(uploadsFolder))
-                    {
-                        Directory.CreateDirectory(uploadsFolder);
-                    }
-                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + ImageFile.FileName;
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await ImageFile.CopyToAsync(fileStream);
-                    }
-                    gift.ImageUrl = "/images/gifts/" + uniqueFileName;
+                    gift.ImageUrl = await _fileStorage.UploadAsync(ImageFile, StorageCategory.GiftImage);
                 }
 
                 _context.Gifts.Add(gift);
@@ -61,7 +46,6 @@ namespace DACSWEBSK.Areas.Admin.Controllers
             return View(gift);
         }
 
-        // GET: Sửa phần quà
         public async Task<IActionResult> Edit(int id)
         {
             var gift = await _context.Gifts.FindAsync(id);
@@ -69,7 +53,6 @@ namespace DACSWEBSK.Areas.Admin.Controllers
             return View(gift);
         }
 
-        // POST: Sửa phần quà
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Gift gift)
@@ -84,7 +67,6 @@ namespace DACSWEBSK.Areas.Admin.Controllers
             return View(gift);
         }
 
-        // Xóa phần quà
         public async Task<IActionResult> Delete(int id)
         {
             var gift = await _context.Gifts.FindAsync(id);

@@ -1,8 +1,8 @@
 using DACSWEBSK.Models;
+using DACSWEBSK.Services.Storage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
 namespace DACSWEBSK.Controllers
 {
@@ -10,16 +10,16 @@ namespace DACSWEBSK.Controllers
     public class EvidenceController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IFileStorageService _fileStorage;
         private readonly ILogger<EvidenceController> _logger;
 
         public EvidenceController(
             ApplicationDbContext context,
-            IWebHostEnvironment webHostEnvironment,
+            IFileStorageService fileStorage,
             ILogger<EvidenceController> logger)
         {
             _context = context;
-            _webHostEnvironment = webHostEnvironment;
+            _fileStorage = fileStorage;
             _logger = logger;
         }
 
@@ -113,12 +113,6 @@ namespace DACSWEBSK.Controllers
             var allowedExtensions = new[] { ".pdf", ".doc", ".docx", ".jpg", ".jpeg", ".png", ".gif", ".bmp" };
             const long maxFileSize = 10 * 1024 * 1024; // 10MB
 
-            var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "evidence");
-            if (!Directory.Exists(uploadsFolder))
-            {
-                Directory.CreateDirectory(uploadsFolder);
-            }
-
             var uploadedFiles = new List<OfflineAttendanceEvidence>();
             var errors = new List<string>();
 
@@ -144,22 +138,13 @@ namespace DACSWEBSK.Controllers
 
                 try
                 {
-                    // Tạo tên file duy nhất
-                    var uniqueFileName = $"{eventId}_{attendee.Id}_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid()}{fileExtension}";
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                    var storedPath = await _fileStorage.UploadAsync(file, StorageCategory.Evidence);
 
-                    // Lưu file
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await file.CopyToAsync(fileStream);
-                    }
-
-                    // Tạo record trong database
                     var evidence = new OfflineAttendanceEvidence
                     {
                         EventId = eventId,
                         AttendeeId = attendee.Id,
-                        FilePath = $"/uploads/evidence/{uniqueFileName}",
+                        FilePath = storedPath,
                         FileName = file.FileName,
                         FileType = fileExtension,
                         FileSize = file.Length,
@@ -263,14 +248,16 @@ namespace DACSWEBSK.Controllers
                 return Forbid();
             }
 
-            var filePath = Path.Combine(_webHostEnvironment.WebRootPath, evidence.FilePath.TrimStart('/'));
-            if (!System.IO.File.Exists(filePath))
+            var fileResult = await FileStorageResults.TryFileResultAsync(
+                _fileStorage,
+                evidence.FilePath,
+                evidence.FileName);
+            if (fileResult == null)
             {
                 return NotFound();
             }
 
-            var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
-            return File(fileBytes, "application/octet-stream", evidence.FileName);
+            return fileResult;
         }
 
         // POST: Evidence/Delete/5
@@ -304,17 +291,13 @@ namespace DACSWEBSK.Controllers
             // Xóa file vật lý
             if (!string.IsNullOrEmpty(evidence.FilePath))
             {
-                var filePath = Path.Combine(_webHostEnvironment.WebRootPath, evidence.FilePath.TrimStart('/'));
-                if (System.IO.File.Exists(filePath))
+                try
                 {
-                    try
-                    {
-                        System.IO.File.Delete(filePath);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning($"Could not delete file {filePath}: {ex.Message}");
-                    }
+                    await _fileStorage.DeleteAsync(evidence.FilePath);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning($"Could not delete file {evidence.FilePath}: {ex.Message}");
                 }
             }
 

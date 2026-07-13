@@ -54,7 +54,7 @@
                 <div id="imagePreview" class="mt-2 text-center">
                     @if (!string.IsNullOrEmpty(Model.ImageUrl))
                     {
-                        <img src="@Model.ImageUrl" alt="Preview" style="max-width: 300px; max-height: 200px;" class="img-thumbnail" />
+                        <img src="@FileStorage.GetAccessUrl(Model.ImageUrl)" alt="Preview" style="max-width: 300px; max-height: 200px;" class="img-thumbnail" />
                     }
                     <img id="preview" src="#" alt="Preview" style="max-width: 300px; max-height: 200px; display: none;" class="img-thumbnail" />
                 </div>
@@ -94,7 +94,7 @@
             var preview = document.getElementById('preview');
             preview.src = reader.result;
             preview.style.display = 'block';
-            document.querySelector('img[src="@Model.ImageUrl"]')?.remove();
+            document.querySelector('img[src="@FileStorage.GetAccessUrl(Model.ImageUrl)"]')?.remove();
         }
         reader.readAsDataURL(event.target.files[0]);
     }

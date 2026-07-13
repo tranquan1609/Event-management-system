@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.IO;
-using System.Linq;
+using DACSWEBSK.Services.Storage;
 
 namespace DACSWEBSK.Controllers
 {
@@ -22,6 +22,7 @@ namespace DACSWEBSK.Controllers
     {
         private readonly IVideoRepository _videoRepository;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IFileStorageService _fileStorage;
         private readonly HuggingFaceService _huggingFaceService;
         private readonly ILogger<VideoController> _logger;
         private readonly YoutubeDlService _transcriptService;
@@ -31,6 +32,7 @@ namespace DACSWEBSK.Controllers
         public VideoController(
             IVideoRepository videoRepository,
             IWebHostEnvironment webHostEnvironment,
+            IFileStorageService fileStorage,
             HuggingFaceService huggingFaceService,
             ILogger<VideoController> logger,
             YoutubeDlService transcriptService,
@@ -39,6 +41,7 @@ namespace DACSWEBSK.Controllers
         {
             _videoRepository = videoRepository;
             _webHostEnvironment = webHostEnvironment;
+            _fileStorage = fileStorage;
             _huggingFaceService = huggingFaceService;
             _logger = logger;
             _transcriptService = transcriptService;
@@ -172,24 +175,14 @@ namespace DACSWEBSK.Controllers
         {
             if (videoFile != null && videoFile.Length > 0)
             {
-                // Tạo tên file duy nhất
-                string uniqueFileName = Guid.NewGuid().ToString() + "_" + videoFile.FileName;
-                string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "videos");
-                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                var storedPath = await _fileStorage.UploadAsync(videoFile, StorageCategory.Video);
 
-                // Lưu file
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                    await videoFile.CopyToAsync(fileStream);
-                }
-
-                // Tạo video mới
                 var video = new Video
                 {
                     Title = title,
                     Description = description,
                     Summary = summary,
-                    LocalFilePath = "/videos/" + uniqueFileName,
+                    LocalFilePath = storedPath,
                     EventId = eventId,
                     UploadDate = DateTime.Now
                 };

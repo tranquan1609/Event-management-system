@@ -1,5 +1,7 @@
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @{
     var botId = "dacs-bot";
+    var chatApiUrl = Configuration["ChatApi:Url"] ?? "/api/simplechat";
 }
 
 <div id="chatbot-container" class="chatbot-container">
@@ -126,7 +128,7 @@
             userInput.value = '';
 
             try {
-                const response = await fetch('/api/simplechat', {
+                const response = await fetch('@chatApiUrl', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -136,8 +138,12 @@
                     })
                 });
 
-                const data = await response.json();
-                addMessage(data.text, false);
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    addMessage(data.message || 'API Gateway timeout. Thử lại sau 1 phút.', false);
+                    return;
+                }
+                addMessage(data.text || 'Không nhận được phản hồi từ server.', false);
             } catch (error) {
                 console.error('Error:', error);
                 addMessage('Xin lỗi, đã xảy ra lỗi. Vui lòng thử lại sau.', false);

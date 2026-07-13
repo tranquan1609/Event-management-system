@@ -8,6 +8,7 @@ using DACSWEBSK.Service.Bot;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using DACSWEBSK.Repositories.Implementations;
+using DACSWEBSK.Services.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,19 +61,30 @@ builder.Services.AddSingleton<HuggingFaceService>();
 // Add YouTubeTranscriptService
 builder.Services.AddScoped<YoutubeDlService>();
 
-// Add background service for event status updates
-builder.Services.AddHostedService<EventStatusUpdateService>();
-
-// Add background service for automatic certificate generation and sending
-builder.Services.AddHostedService<AutoCertificateService>();
-
-// Add background service for sending event ended emails
-builder.Services.AddHostedService<EventEndedEmailService>();
+// Background jobs chạy trên AWS Lambda + EventBridge (không chạy trùng trên EC2)
+// builder.Services.AddHostedService<EventStatusUpdateService>();
+// builder.Services.AddHostedService<AutoCertificateService>();
+// builder.Services.AddHostedService<EventEndedEmailService>();
 
 // Add certificate service
 builder.Services.AddScoped<ICertificateService, CertificateService>();
 builder.Services.AddScoped<CertificateTemplateService>();
 builder.Services.AddHttpContextAccessor();
+
+// File storage: Local (wwwroot) hoặc Amazon S3 — đổi Storage:Provider trong appsettings.json
+builder.Services.Configure<StorageOptions>(builder.Configuration.GetSection(StorageOptions.SectionName));
+builder.Services.Configure<S3StorageOptions>(builder.Configuration.GetSection(S3StorageOptions.SectionName));
+var storageProvider = builder.Configuration[$"{StorageOptions.SectionName}:Provider"] ?? "Local";
+if (storageProvider.Equals("S3", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
+    builder.Services.AddAWSService<Amazon.S3.IAmazonS3>();
+    builder.Services.AddScoped<IFileStorageService, S3FileStorageService>();
+}
+else
+{
+    builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
+}
 
 // Add YoutubeDlService
 builder.Services.AddScoped<YoutubeDlService>();

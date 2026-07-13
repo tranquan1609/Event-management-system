@@ -1,4 +1,5 @@
 using DACSWEBSK.Models;
+using DACSWEBSK.Services.Storage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -12,16 +13,16 @@ namespace DACSWEBSK.Areas.Admin.Controllers
     public class AdminEvidenceController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IFileStorageService _fileStorage;
         private readonly ILogger<AdminEvidenceController> _logger;
 
         public AdminEvidenceController(
             ApplicationDbContext context,
-            IWebHostEnvironment webHostEnvironment,
+            IFileStorageService fileStorage,
             ILogger<AdminEvidenceController> logger)
         {
             _context = context;
-            _webHostEnvironment = webHostEnvironment;
+            _fileStorage = fileStorage;
             _logger = logger;
         }
 
@@ -86,14 +87,16 @@ namespace DACSWEBSK.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var filePath = Path.Combine(_webHostEnvironment.WebRootPath, evidence.FilePath.TrimStart('/'));
-            if (!System.IO.File.Exists(filePath))
+            var fileResult = await FileStorageResults.TryFileResultAsync(
+                _fileStorage,
+                evidence.FilePath,
+                evidence.FileName);
+            if (fileResult == null)
             {
                 return NotFound();
             }
 
-            var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
-            return File(fileBytes, "application/octet-stream", evidence.FileName);
+            return fileResult;
         }
 
         // POST: Admin/AdminEvidence/Approve
@@ -176,17 +179,13 @@ namespace DACSWEBSK.Areas.Admin.Controllers
             // Xóa file vật lý
             if (!string.IsNullOrEmpty(evidence.FilePath))
             {
-                var filePath = Path.Combine(_webHostEnvironment.WebRootPath, evidence.FilePath.TrimStart('/'));
-                if (System.IO.File.Exists(filePath))
+                try
                 {
-                    try
-                    {
-                        System.IO.File.Delete(filePath);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning($"Could not delete file {filePath}: {ex.Message}");
-                    }
+                    await _fileStorage.DeleteAsync(evidence.FilePath);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning($"Could not delete file {evidence.FilePath}: {ex.Message}");
                 }
             }
 
@@ -219,23 +218,14 @@ namespace DACSWEBSK.Areas.Admin.Controllers
                 return BadRequest("File này không phải là hình ảnh!");
             }
 
-            var filePath = Path.Combine(_webHostEnvironment.WebRootPath, evidence.FilePath.TrimStart('/'));
-            if (!System.IO.File.Exists(filePath))
+            var opened = await _fileStorage.OpenReadAsync(evidence.FilePath);
+            if (opened == null)
             {
                 return NotFound();
             }
 
-            var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
-            var contentType = fileExtension switch
-            {
-                ".jpg" or ".jpeg" => "image/jpeg",
-                ".png" => "image/png",
-                ".gif" => "image/gif",
-                ".bmp" => "image/bmp",
-                _ => "image/jpeg"
-            };
-
-            return File(fileBytes, contentType);
+            var (stream, contentType, _) = opened.Value;
+            return File(stream, contentType);
         }
 
         // GET: Admin/AdminEvidence/ExportReport

@@ -4,6 +4,7 @@ using DACSWEBSK.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using DACSWEBSK.Services.Storage;
 
 namespace DACSWEBSK.Areas.Admin.Controllers
 {
@@ -13,13 +14,16 @@ namespace DACSWEBSK.Areas.Admin.Controllers
     {
         private readonly IEventRepository _eventRepository;
         private readonly ApplicationDbContext _context;
-        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IFileStorageService _fileStorage;
 
-        public AdminEventController(IEventRepository eventRepository, ApplicationDbContext context, IWebHostEnvironment webHostEnvironment)
+        public AdminEventController(
+            IEventRepository eventRepository,
+            ApplicationDbContext context,
+            IFileStorageService fileStorage)
         {
             _eventRepository = eventRepository;
             _context = context;
-            _webHostEnvironment = webHostEnvironment;
+            _fileStorage = fileStorage;
         }
 
         // GET: Admin/Event
@@ -99,27 +103,7 @@ namespace DACSWEBSK.Areas.Admin.Controllers
             {
                 if (imageFile != null && imageFile.Length > 0)
                 {
-                    // Tạo tên file duy nhất
-                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
-                    
-                    // Tạo đường dẫn đến thư mục lưu ảnh
-                    string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "events");
-                    
-                    // Tạo thư mục nếu chưa tồn tại
-                    if (!Directory.Exists(uploadsFolder))
-                    {
-                        Directory.CreateDirectory(uploadsFolder);
-                    }
-                    
-                    // Lưu file
-                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await imageFile.CopyToAsync(fileStream);
-                    }
-
-                    // Cập nhật đường dẫn ảnh cho sự kiện
-                    model.ImageUrl = "/images/events/" + uniqueFileName;
+                    model.ImageUrl = await _fileStorage.UploadAsync(imageFile, StorageCategory.EventImage);
                 }
 
                 await _eventRepository.AddAsync(model);

@@ -1,4 +1,5 @@
 using DACSWEBSK.Models;
+using DACSWEBSK.Services.Storage;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,16 +8,16 @@ namespace DACSWEBSK.Controllers
     public class AssignmentController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IFileStorageService _fileStorage;
         private readonly ILogger<AssignmentController> _logger;
 
         public AssignmentController(
             ApplicationDbContext context,
-            IWebHostEnvironment webHostEnvironment,
+            IFileStorageService fileStorage,
             ILogger<AssignmentController> logger)
         {
             _context = context;
-            _webHostEnvironment = webHostEnvironment;
+            _fileStorage = fileStorage;
             _logger = logger;
         }
 
@@ -200,41 +201,20 @@ namespace DACSWEBSK.Controllers
                     return RedirectToAction(nameof(Submit), new { id = assignmentId });
                 }
 
-                // Tạo thư mục lưu file
-                var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "assignments");
-                if (!Directory.Exists(uploadsFolder))
-                {
-                    Directory.CreateDirectory(uploadsFolder);
-                }
-
-                // Tạo tên file duy nhất
-                fileName = $"{assignmentId}_{attendee.Id}_{DateTime.Now:yyyyMMddHHmmss}{fileExtension}";
-                filePath = Path.Combine(uploadsFolder, fileName);
-
-                // Xóa file cũ nếu có
                 if (existingSubmission != null && !string.IsNullOrEmpty(existingSubmission.FilePath))
                 {
-                    var oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, existingSubmission.FilePath.TrimStart('/'));
-                    if (System.IO.File.Exists(oldFilePath))
+                    try
                     {
-                        try
-                        {
-                            System.IO.File.Delete(oldFilePath);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogWarning($"Could not delete old file: {ex.Message}");
-                        }
+                        await _fileStorage.DeleteAsync(existingSubmission.FilePath);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning($"Could not delete old file: {ex.Message}");
                     }
                 }
 
-                // Lưu file mới
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                    await fileUpload.CopyToAsync(fileStream);
-                }
-
-                filePath = $"/uploads/assignments/{fileName}";
+                filePath = await _fileStorage.UploadAsync(fileUpload, StorageCategory.Assignment);
+                fileName = fileUpload.FileName;
             }
 
             // Tạo hoặc cập nhật submission
@@ -354,15 +334,16 @@ namespace DACSWEBSK.Controllers
                 return Forbid();
             }
 
-            var filePath = Path.Combine(_webHostEnvironment.WebRootPath, submission.FilePath.TrimStart('/'));
-            if (!System.IO.File.Exists(filePath))
+            var fileResult = await FileStorageResults.TryFileResultAsync(
+                _fileStorage,
+                submission.FilePath,
+                submission.FileName ?? "submission_file");
+            if (fileResult == null)
             {
                 return NotFound();
             }
 
-            var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
-            var fileName = submission.FileName ?? "submission_file";
-            return File(fileBytes, "application/octet-stream", fileName);
+            return fileResult;
         }
     }
 }

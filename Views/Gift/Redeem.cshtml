@@ -9,7 +9,7 @@
     <div class="card shadow-lg border-0 rounded-4">
         @if (!string.IsNullOrEmpty(Model.ImageUrl))
         {
-            <img src="@Model.ImageUrl" class="card-img-top rounded-top-4" alt="@Model.Name" style="height: 300px; object-fit: cover;">
+            <img src="@FileStorage.GetAccessUrl(Model.ImageUrl)" class="card-img-top rounded-top-4" alt="@Model.Name" style="height: 300px; object-fit: cover;">
         }
         <div class="card-body">
             <h4 class="card-title text-primary">@Model.Name</h4>

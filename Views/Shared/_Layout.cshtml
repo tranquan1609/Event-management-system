@@ -1,4 +1,8 @@
 ﻿<!DOCTYPE html>
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@{
+    var chatApiUrl = Configuration["ChatApi:Url"] ?? "/api/simplechat";
+}
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
@@ -15,20 +19,22 @@
 
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --accent-gradient: linear-gradient(45deg, #ff4b6e, #ff8f70);
-            --glass-bg: rgba(255, 255, 255, 0.9);
-            --glass-border: rgba(255, 255, 255, 0.18);
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            --accent-color: #ff4b6e;
-            --text-color: #2d3748;
-            --light-bg: #fafafa;
+            --primary-gradient: linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%);
+            --accent-gradient: linear-gradient(45deg, #06b6d4, #3b82f6);
+            --glass-bg: rgba(15, 23, 42, 0.88);
+            --glass-border: rgba(148, 163, 184, 0.12);
+            --primary-color: #60a5fa;
+            --secondary-color: #8b5cf6;
+            --accent-color: #22d3ee;
+            --text-color: #e2e8f0;
+            --light-bg: #020617;
+            --surface-color: #0f172a;
+            --surface-color-soft: #111827;
         }
 
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: var(--light-bg);
+            background: linear-gradient(180deg, #020617 0%, #0f172a 100%);
             color: var(--text-color);
             min-height: 100vh;
             display: flex;
@@ -65,8 +71,8 @@
         }
 
         .nav-link:hover {
-            color: var(--primary-color) !important;
-            background: rgba(102, 126, 234, 0.1);
+            color: #ffffff !important;
+            background: rgba(96, 165, 250, 0.14);
             transform: translateY(-2px);
         }
 
@@ -87,7 +93,7 @@
         }
 
         .dropdown-item:hover {
-            background: rgba(102, 126, 234, 0.1);
+            background: rgba(96, 165, 250, 0.12);
             color: var(--primary-color);
             transform: translateX(5px);
         }
@@ -135,13 +141,13 @@
         }
 
         .alert-success {
-            background: rgba(72, 187, 120, 0.1);
-            color: #2f855a;
+            background: rgba(16, 185, 129, 0.12);
+            color: #a7f3d0;
         }
 
         .alert-danger {
-            background: rgba(245, 101, 101, 0.1);
-            color: #e53e3e;
+            background: rgba(239, 68, 68, 0.12);
+            color: #fecaca;
         }
 
         footer {
@@ -183,7 +189,7 @@
         }
 
         .spinner-overlay {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(2, 6, 23, 0.85);
             backdrop-filter: blur(10px);
         }
 
@@ -500,11 +506,11 @@
     @* --- AI Chatbox START --- *@
     <style>
         #ai-chatbox { font-family: 'Segoe UI', Arial, sans-serif; box-shadow: 0 4px 24px rgba(0,0,0,0.15); position: fixed; bottom: 24px; right: 24px; z-index: 9999; }
-        #ai-chatbox-header { background: #007bff; color: #fff; padding: 10px 16px; border-radius: 8px 8px 0 0; cursor: pointer; user-select: none; }
-        #ai-chatbox-messages { background: #f8f9fa; border-radius: 0 0 8px 8px; flex: 1; padding: 12px; overflow-y: auto; font-size: 15px; }
-        .ai-chatbox-msg-user { background: #007bff; color: #fff; padding: 8px 12px; border-radius: 16px 16px 0 16px; margin: 8px 0 8px auto; max-width: 80%; text-align: right; }
-        .ai-chatbox-msg-bot { background: #e9ecef; color: #222; padding: 8px 12px; border-radius: 16px 16px 16px 0; margin: 8px auto 8px 0; max-width: 80%; text-align: left; }
-        #ai-chatbox-body { background: #fff; width: 320px; height: 400px; border: 1px solid #007bff; border-top: none; border-radius: 0 0 8px 8px; display: flex; flex-direction: column; }
+        #ai-chatbox-header { background: linear-gradient(135deg, #1d4ed8, #2563eb); color: #fff; padding: 10px 16px; border-radius: 8px 8px 0 0; cursor: pointer; user-select: none; }
+        #ai-chatbox-messages { background: #111827; color: #e5e7eb; border-radius: 0 0 8px 8px; flex: 1; padding: 12px; overflow-y: auto; font-size: 15px; }
+        .ai-chatbox-msg-user { background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; padding: 8px 12px; border-radius: 16px 16px 0 16px; margin: 8px 0 8px auto; max-width: 80%; text-align: right; }
+        .ai-chatbox-msg-bot { background: #1f2937; color: #e5e7eb; padding: 8px 12px; border-radius: 16px 16px 16px 0; margin: 8px auto 8px 0; max-width: 80%; text-align: left; }
+        #ai-chatbox-body { background: #0f172a; width: 320px; height: 400px; border: 1px solid #1d4ed8; border-top: none; border-radius: 0 0 8px 8px; display: flex; flex-direction: column; }
     </style>
     <div id="ai-chatbox">
         <div id="ai-chatbox-header">
@@ -556,15 +562,19 @@
             input.value = '';
             appendMessage('Đang trả lời...', false);
 
-            fetch('/api/simplechat', {
+            fetch('@chatApiUrl', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text })
             })
-            .then(res => res.json())
-            .then(data => {
+            .then(async res => {
+                const data = await res.json().catch(() => ({}));
                 messages.removeChild(messages.lastChild);
-                appendMessage(data.text, false);
+                if (!res.ok) {
+                    appendMessage(data.message || 'API Gateway timeout. Thử lại sau 1 phút.', false);
+                    return;
+                }
+                appendMessage(data.text || 'Không nhận được phản hồi từ server.', false);
             })
             .catch(() => {
                 messages.removeChild(messages.lastChild);

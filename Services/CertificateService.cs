@@ -1,4 +1,5 @@
 using DACSWEBSK.Models;
+using DACSWEBSK.Services.Storage;
 using Microsoft.EntityFrameworkCore;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -20,6 +21,7 @@ namespace DACSWEBSK.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IConfiguration _configuration;
         private readonly IVideoProgressService _videoProgressService;
+        private readonly IFileStorageService _fileStorage;
 
         public CertificateService(
             ApplicationDbContext context,
@@ -28,7 +30,8 @@ namespace DACSWEBSK.Services
             ILogger<CertificateService> logger,
             IHttpContextAccessor httpContextAccessor,
             IConfiguration configuration,
-            IVideoProgressService videoProgressService)
+            IVideoProgressService videoProgressService,
+            IFileStorageService fileStorage)
         {
             _context = context;
             _emailService = emailService;
@@ -37,35 +40,28 @@ namespace DACSWEBSK.Services
             _httpContextAccessor = httpContextAccessor;
             _configuration = configuration;
             _videoProgressService = videoProgressService;
+            _fileStorage = fileStorage;
 
-            // Đảm bảo các thư mục cần thiết đã được tạo
             EnsureDirectoriesExist();
         }
 
         private void EnsureDirectoriesExist()
         {
-            // Tạo thư mục certificates nếu chưa tồn tại
+            if (_fileStorage.IsS3)
+            {
+                return;
+            }
+
             string certificatesDir = Path.Combine(_webHostEnvironment.WebRootPath, "certificates");
             if (!Directory.Exists(certificatesDir))
             {
                 Directory.CreateDirectory(certificatesDir);
-                _logger.LogInformation($"Đã tạo thư mục certificates tại {certificatesDir}");
             }
 
-            // Tạo thư mục images nếu chưa tồn tại
             string imagesDir = Path.Combine(_webHostEnvironment.WebRootPath, "images");
             if (!Directory.Exists(imagesDir))
             {
                 Directory.CreateDirectory(imagesDir);
-                _logger.LogInformation($"Đã tạo thư mục images tại {imagesDir}");
-            }
-
-            // Kiểm tra template
-            string templatePath = Path.Combine(imagesDir, "certificate-template.png");
-            if (!File.Exists(templatePath))
-            {
-                _logger.LogWarning($"Template chứng nhận không tồn tại tại {templatePath}");
-                throw new FileNotFoundException("Template chứng nhận không tồn tại. Vui lòng tạo template trước khi sử dụng.");
             }
         }
 
@@ -153,11 +149,8 @@ namespace DACSWEBSK.Services
 
             try
             {
-                // Generate certificate image and get relative path
-                string relativePath = await GenerateCertificateImageAsync(certificate, attendee, @event);
-                
-                // Store absolute path in database
-                certificate.CertificateUrl = GetCertificateUrl(relativePath);
+                string storedPath = await GenerateCertificateImageAsync(certificate, attendee, @event);
+                certificate.CertificateUrl = storedPath;
 
                 // Save to database
                 await _context.Certificates.AddAsync(certificate);
@@ -183,16 +176,10 @@ namespace DACSWEBSK.Services
 
                 if (attendee == null) return false;
 
-                // Sử dụng URL đã lưu (đã là tuyệt đối); nếu vì lý do nào đó là đường dẫn tương đối, bổ sung baseUrl
-                string certificateUrl;
-                if (Uri.TryCreate(certificate.CertificateUrl, UriKind.Absolute, out var absoluteUri))
+                string certificateUrl = _fileStorage.GetAccessUrl(certificate.CertificateUrl);
+                if (string.IsNullOrEmpty(certificateUrl))
                 {
-                    certificateUrl = absoluteUri.ToString();
-                }
-                else
-                {
-                    var baseUrl = GetBaseUrl();
-                    certificateUrl = baseUrl.TrimEnd('/') + "/" + certificate.CertificateUrl.TrimStart('/');
+                    certificateUrl = GetCertificateUrl(certificate.CertificateUrl);
                 }
 
                 string emailBody = $@"
@@ -224,9 +211,7 @@ namespace DACSWEBSK.Services
 
         private async Task<string> GenerateCertificateImageAsync(Certificate certificate, Attendee attendee, Event @event)
         {
-            // Load certificate template
-            string templatePath = Path.Combine(_webHostEnvironment.WebRootPath, "images", "certificate-template.png");
-            using var image = Image.FromFile(templatePath);
+            using var image = await LoadTemplateImageAsync();
             using var graphics = Graphics.FromImage(image);
 
             // Configure text formatting with better fonts and colors
@@ -324,14 +309,8 @@ namespace DACSWEBSK.Services
             graphics.DrawString(issueDateText, detailFont, textBrush,
                                 centerX - (issueDateSize.Width / 2), 620);
 
-            // Define fileName and filePath
             string fileName = $"certificate-{certificate.CertificateNumber}.png";
-            string certificatesDir = Path.Combine(_webHostEnvironment.WebRootPath, "certificates");
-            string filePath = Path.Combine(certificatesDir, fileName);
-            string relativePathForReturn = $"/certificates/{fileName}";
-
-            // Construct the absolute URL for the QR code using GetCertificateUrl helper
-            string qrCodeAbsoluteUrl = GetCertificateUrl(relativePathForReturn);
+            string qrCodeAbsoluteUrl = $"{GetBaseUrl()}/Admin/Certificate/Verify";
 
             // Generate QR code
             using var qrGenerator = new QRCodeGenerator();
@@ -370,10 +349,44 @@ namespace DACSWEBSK.Services
                                 signatureBoxX + (signatureBoxSize / 2) - (signatureLabelSize.Width / 2),
                                 signatureBoxY - 25);
 
-            // Save the certificate image (moved to here so that fileName is available)
-            image.Save(filePath, ImageFormat.Png);
+            await using var outputStream = new MemoryStream();
+            image.Save(outputStream, ImageFormat.Png);
+            var bytes = outputStream.ToArray();
 
-            return relativePathForReturn;
+            return await _fileStorage.UploadBytesAsync(
+                bytes,
+                StorageCategory.Certificate,
+                fileName,
+                "image/png");
+        }
+
+        private async Task<Image> LoadTemplateImageAsync()
+        {
+            var candidates = new List<string> { "/images/certificate-template.png" };
+
+            var imagesBucket = _configuration["S3:ImagesBucket"];
+            if (!string.IsNullOrWhiteSpace(imagesBucket))
+            {
+                candidates.Add($"s3:{imagesBucket}/templates/certificate-template.png");
+            }
+
+            foreach (var candidate in candidates)
+            {
+                var opened = await _fileStorage.OpenReadAsync(candidate);
+                if (opened != null)
+                {
+                    return Image.FromStream(opened.Value.Stream);
+                }
+            }
+
+            string localPath = Path.Combine(_webHostEnvironment.WebRootPath, "images", "certificate-template.png");
+            if (File.Exists(localPath))
+            {
+                return Image.FromFile(localPath);
+            }
+
+            throw new FileNotFoundException(
+                "Template chứng nhận không tồn tại. Đặt file tại wwwroot/images/certificate-template.png hoặc upload lên S3: images bucket / templates/certificate-template.png");
         }
 
         private string GenerateUniqueCertificateNumber()

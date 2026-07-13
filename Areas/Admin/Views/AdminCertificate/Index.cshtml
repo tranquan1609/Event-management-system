@@ -74,7 +74,7 @@
                                 }
                             </td>
                             <td>
-                                <a href="@item.CertificateUrl" target="_blank" class="btn btn-sm btn-info">
+                                <a href="@FileStorage.GetAccessUrl(item.CertificateUrl)" target="_blank" class="btn btn-sm btn-info">
                                     <i class="fas fa-download"></i> Tải về
                                 </a>
                                 @if (!item.IsEmailSent)

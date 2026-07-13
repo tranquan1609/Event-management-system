@@ -84,7 +84,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: url('@Model.ImageUrl') center/cover;
+        background: url('@FileStorage.GetAccessUrl(Model.ImageUrl)') center/cover;
         opacity: 0.2;
         filter: blur(8px);
     }

@@ -30,7 +30,7 @@
                         <td>
                             @if (!string.IsNullOrEmpty(item.ImageUrl))
                             {
-                                <img src="@item.ImageUrl" alt="Gift" class="img-thumbnail" style="max-width: 80px;" />
+                                <img src="@FileStorage.GetAccessUrl(item.ImageUrl)" alt="Gift" class="img-thumbnail" style="max-width: 80px;" />
                             }
                             else
                             {

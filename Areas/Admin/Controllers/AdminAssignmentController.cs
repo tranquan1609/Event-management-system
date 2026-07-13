@@ -1,4 +1,5 @@
 using DACSWEBSK.Models;
+using DACSWEBSK.Services.Storage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -12,16 +13,16 @@ namespace DACSWEBSK.Areas.Admin.Controllers
     public class AdminAssignmentController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IFileStorageService _fileStorage;
         private readonly ILogger<AdminAssignmentController> _logger;
 
         public AdminAssignmentController(
             ApplicationDbContext context,
-            IWebHostEnvironment webHostEnvironment,
+            IFileStorageService fileStorage,
             ILogger<AdminAssignmentController> logger)
         {
             _context = context;
-            _webHostEnvironment = webHostEnvironment;
+            _fileStorage = fileStorage;
             _logger = logger;
         }
 
@@ -209,17 +210,13 @@ namespace DACSWEBSK.Areas.Admin.Controllers
                 {
                     if (!string.IsNullOrEmpty(submission.FilePath))
                     {
-                        var filePath = Path.Combine(_webHostEnvironment.WebRootPath, submission.FilePath.TrimStart('/'));
-                        if (System.IO.File.Exists(filePath))
+                        try
                         {
-                            try
-                            {
-                                System.IO.File.Delete(filePath);
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.LogWarning($"Could not delete file {filePath}: {ex.Message}");
-                            }
+                            await _fileStorage.DeleteAsync(submission.FilePath);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning($"Could not delete file {submission.FilePath}: {ex.Message}");
                         }
                     }
                 }
@@ -272,15 +269,16 @@ namespace DACSWEBSK.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var filePath = Path.Combine(_webHostEnvironment.WebRootPath, submission.FilePath.TrimStart('/'));
-            if (!System.IO.File.Exists(filePath))
+            var fileResult = await FileStorageResults.TryFileResultAsync(
+                _fileStorage,
+                submission.FilePath,
+                submission.FileName ?? "submission_file");
+            if (fileResult == null)
             {
                 return NotFound();
             }
 
-            var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
-            var fileName = submission.FileName ?? "submission_file";
-            return File(fileBytes, "application/octet-stream", fileName);
+            return fileResult;
         }
 
         // POST: Admin/AdminAssignment/GradeSubmission

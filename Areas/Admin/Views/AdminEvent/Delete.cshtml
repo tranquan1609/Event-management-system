@@ -27,7 +27,7 @@
             <dd class="col-sm-9">
                 @if (!string.IsNullOrEmpty(Model.ImageUrl))
                 {
-                    <img src="@Model.ImageUrl" alt="Event Image" class="img-fluid rounded shadow-sm" style="max-height: 200px;" />
+                    <img src="@FileStorage.GetAccessUrl(Model.ImageUrl)" alt="Event Image" class="img-fluid rounded shadow-sm" style="max-height: 200px;" />
                 }
                 else
                 {

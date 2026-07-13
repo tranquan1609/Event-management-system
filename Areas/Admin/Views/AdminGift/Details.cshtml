@@ -18,7 +18,7 @@
             <dd class="col-sm-9">
                 @if (!string.IsNullOrEmpty(Model.ImageUrl))
                 {
-                    <img src="@Model.ImageUrl" class="img-thumbnail" style="max-width: 200px;" />
+                    <img src="@FileStorage.GetAccessUrl(Model.ImageUrl)" class="img-thumbnail" style="max-width: 200px;" />
                 }
                 else
                 {

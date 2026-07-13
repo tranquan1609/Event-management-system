@@ -1,0 +1,312 @@
+/* _content/DACSWEBSK/Areas/Admin/Views/Shared/_Layout.cshtml.rz.scp.css */
+/* Giao diện navbar brand */
+a.navbar-brand[b-e32eny5cne] {
+    white-space: normal;
+    text-align: center;
+    word-break: break-word;
+    color: #ff4b6e;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+    a.navbar-brand:hover[b-e32eny5cne] {
+        color: #e63e5c;
+        transform: scale(1.05);
+    }
+
+/* Liên kết */
+a[b-e32eny5cne] {
+    color: #ff4b6e;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+    a:hover[b-e32eny5cne] {
+        color: #e63e5c;
+        text-decoration: none;
+        transform: translateY(-2px);
+    }
+
+/* Nút chính */
+.btn-primary[b-e32eny5cne] {
+    color: #fff;
+    background-color: #ff4b6e;
+    border-color: #e63e5c;
+    transition: all 0.3s ease;
+}
+
+    .btn-primary:hover[b-e32eny5cne] {
+        background-color: #e63e5c;
+        border-color: #d03351;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(230, 62, 92, 0.3);
+    }
+
+/* Nav Pills Active */
+.nav-pills .nav-link.active[b-e32eny5cne],
+.nav-pills .show > .nav-link[b-e32eny5cne] {
+    color: #fff;
+    background-color: #ff4b6e;
+    border-color: #e63e5c;
+}
+
+/* Viền phân cách */
+.border-top[b-e32eny5cne] {
+    border-top: 1px solid #ffe6eb;
+}
+
+.border-bottom[b-e32eny5cne] {
+    border-bottom: 1px solid #ffe6eb;
+}
+
+/* Bóng đổ nhẹ */
+.box-shadow[b-e32eny5cne] {
+    box-shadow: 0 .5rem 1.5rem rgba(255, 75, 110, 0.1);
+}
+
+/* Nút chấp nhận chính sách */
+button.accept-policy[b-e32eny5cne] {
+    font-size: 1rem;
+    line-height: inherit;
+    transition: all 0.3s ease;
+}
+
+/* Footer */
+.footer[b-e32eny5cne] {
+    text-align: center;
+    color: #6c757d;
+    background-color: #fff5f7;
+    padding: 2rem 0;
+    border-top: 1px solid #ffe6eb;
+}
+
+/* Card chung */
+.card[b-e32eny5cne] {
+    border-radius: 1rem;
+    background-color: #ffffff;
+    border: 1px solid #ffe6eb;
+    transition: all 0.3s ease;
+}
+
+    .card:hover[b-e32eny5cne] {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(255, 75, 110, 0.1);
+    }
+
+/* Navbar */
+.navbar[b-e32eny5cne] {
+    background: linear-gradient(45deg, #ff4b6e, #ff8f70) !important;
+    border-radius: 0;
+    box-shadow: 0 2px 15px rgba(255, 75, 110, 0.2);
+}
+
+    .navbar .nav-link[b-e32eny5cne] {
+        color: #fff !important;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+    }
+
+        .navbar .nav-link:hover[b-e32eny5cne] {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+/* Admin specific styles */
+.admin-card[b-e32eny5cne] {
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px rgba(255, 75, 110, 0.1);
+    transition: all 0.3s ease;
+    border: 1px solid #ffe6eb;
+}
+
+    .admin-card:hover[b-e32eny5cne] {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(255, 75, 110, 0.15);
+    }
+
+.admin-table[b-e32eny5cne] {
+    background: #fff;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(255, 75, 110, 0.1);
+}
+
+    .admin-table th[b-e32eny5cne] {
+        background: #fff5f7;
+        color: #ff4b6e;
+        font-weight: 600;
+        border-bottom: 2px solid #ffe6eb;
+    }
+
+.admin-action-button[b-e32eny5cne] {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+    .admin-action-button:hover[b-e32eny5cne] {
+        transform: translateY(-2px);
+    }
+
+/* Custom Scrollbar */
+[b-e32eny5cne]::-webkit-scrollbar {
+    width: 8px;
+}
+
+[b-e32eny5cne]::-webkit-scrollbar-track {
+    background: #fff5f7;
+}
+
+[b-e32eny5cne]::-webkit-scrollbar-thumb {
+    background: #ff4b6e;
+    border-radius: 4px;
+}
+
+    [b-e32eny5cne]::-webkit-scrollbar-thumb:hover {
+        background: #e63e5c;
+    }
+/* _content/DACSWEBSK/Views/Shared/_Layout.cshtml.rz.scp.css */
+/* Giao diện navbar brand */
+a.navbar-brand[b-5p38wpy4v2] {
+    white-space: normal;
+    text-align: center;
+    word-break: break-word;
+    color: #ff4b6e;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+    a.navbar-brand:hover[b-5p38wpy4v2] {
+        color: #e63e5c;
+        transform: scale(1.05);
+    }
+
+/* Liên kết */
+a[b-5p38wpy4v2] {
+    color: #ff4b6e;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+    a:hover[b-5p38wpy4v2] {
+        color: #e63e5c;
+        text-decoration: none;
+        transform: translateY(-2px);
+    }
+
+/* Nút chính */
+.btn-primary[b-5p38wpy4v2] {
+    color: #fff;
+    background-color: #ff4b6e;
+    border-color: #e63e5c;
+    transition: all 0.3s ease;
+}
+
+    .btn-primary:hover[b-5p38wpy4v2] {
+        background-color: #e63e5c;
+        border-color: #d03351;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(230, 62, 92, 0.3);
+    }
+
+/* Nav Pills Active */
+.nav-pills .nav-link.active[b-5p38wpy4v2],
+.nav-pills .show > .nav-link[b-5p38wpy4v2] {
+    color: #fff;
+    background-color: #ff4b6e;
+    border-color: #e63e5c;
+}
+
+/* Viền phân cách */
+.border-top[b-5p38wpy4v2] {
+    border-top: 1px solid #ffe6eb;
+}
+
+.border-bottom[b-5p38wpy4v2] {
+    border-bottom: 1px solid #ffe6eb;
+}
+
+/* Bóng đổ nhẹ */
+.box-shadow[b-5p38wpy4v2] {
+    box-shadow: 0 .5rem 1.5rem rgba(255, 75, 110, 0.1);
+}
+
+/* Nút chấp nhận chính sách */
+button.accept-policy[b-5p38wpy4v2] {
+    font-size: 1rem;
+    line-height: inherit;
+    transition: all 0.3s ease;
+}
+
+/* Footer */
+.footer[b-5p38wpy4v2] {
+    text-align: center;
+    color: #6c757d;
+    background-color: #fff5f7;
+    padding: 2rem 0;
+    border-top: 1px solid #ffe6eb;
+}
+
+/* Card chung */
+.card[b-5p38wpy4v2] {
+    border-radius: 1rem;
+    background-color: #ffffff;
+    border: 1px solid #ffe6eb;
+    transition: all 0.3s ease;
+}
+
+    .card:hover[b-5p38wpy4v2] {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(255, 75, 110, 0.1);
+    }
+
+/* Navbar */
+.navbar[b-5p38wpy4v2] {
+    background-color: #ffffff !important;
+    border-radius: 0;
+    box-shadow: 0 2px 15px rgba(255, 75, 110, 0.1);
+}
+
+/* Nav-link chung */
+.nav-link[b-5p38wpy4v2] {
+    font-weight: 500;
+    color: #555 !important;
+    transition: all 0.3s ease;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+}
+
+    .nav-link:hover[b-5p38wpy4v2] {
+        color: #ff4b6e !important;
+        background-color: #fff5f7;
+    }
+
+/* Animation cho các phần tử */
+.animate-hover[b-5p38wpy4v2] {
+    transition: all 0.3s ease;
+}
+
+    .animate-hover:hover[b-5p38wpy4v2] {
+        transform: translateY(-2px);
+    }
+
+/* Custom Scrollbar */
+[b-5p38wpy4v2]::-webkit-scrollbar {
+    width: 8px;
+}
+
+[b-5p38wpy4v2]::-webkit-scrollbar-track {
+    background: #fff5f7;
+}
+
+[b-5p38wpy4v2]::-webkit-scrollbar-thumb {
+    background: #ff4b6e;
+    border-radius: 4px;
+}
+
+    [b-5p38wpy4v2]::-webkit-scrollbar-thumb:hover {
+        background: #e63e5c;
+    }
